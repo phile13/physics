@@ -1,228 +1,6 @@
 class Decay {
-    static ParticleInfo = {
-        Photon:        { name: "Photon",        lifespan: Infinity, charge: 0,  mass: 0,        baryon: 0, lepton: {e:0, m:0, t:0} },
-        Gluon:         { name: "Gluon",         lifespan: Infinity, charge: 0,  mass: 0,        baryon: 0, lepton: {e:0, m:0, t:0} },
-    
-        NeutrinoE:     { name: "NeutrinoE",     lifespan: Infinity, charge: 0,  mass: 0.0000022,baryon: 0, lepton: {e:1, m:0, t:0} },
-        AntiNeutrinoE: { name: "AntiNeutrinoE", lifespan: Infinity, charge: 0,  mass: 0.0000022,baryon: 0, lepton: {e:-1, m:0, t:0} },
- 
-        NeutrinoMu:    { name: "NeutrinoMu",    lifespan: Infinity, charge: 0,  mass: 0.17,     baryon: 0, lepton: {e:0, m:1, t:0} },
-        AntiNeutrinoMu:{ name: "AntiNeutrinoMu",lifespan: Infinity, charge: 0,  mass: 0.17,     baryon: 0, lepton: {e:0, m:-1, t:0} },
-    
-        Electron:      { name: "Electron",      lifespan: Infinity, charge: -1, mass: 0.511,    baryon: 0, lepton: {e:1, m:0, t:0} },
-        Positron:      { name: "Positron",      lifespan: Infinity, charge: +1, mass: 0.511,    baryon: 0, lepton: {e:-1, m:0, t:0} },
-    
-        Up:            { name: "Up",            lifespan: Infinity, charge: +2/3, mass: 2.2,    baryon: 1/3, lepton: {e:0, m:0, t:0} },
-        AntiUp:        { name: "AntiUp",        lifespan: Infinity, charge: -2/3, mass: 2.2,    baryon: -1/3, lepton: {e:0, m:0, t:0} },
-    
-        Down:          { name: "Down",          lifespan: Infinity, charge: -1/3, mass: 4.7,    baryon: 1/3, lepton: {e:0, m:0, t:0} },
-        AntiDown:      { name: "AntiDown",      lifespan: Infinity, charge: +1/3, mass: 4.7,    baryon: -1/3, lepton: {e:0, m:0, t:0} },
-    
-        NeutrinoTau:   { name: "NeutrinoTau",   lifespan: Infinity, charge: 0,  mass: 18.2,     baryon: 0, lepton: {e:0, m:0, t:1} },
-        AntiNeutrinoTau:{name: "AntiNeutrinoTau",lifespan: Infinity, charge: 0, mass: 18.2,     baryon: 0, lepton: {e:0, m:0, t:-1} },
-    
-        Strange:       { name: "Strange",       lifespan: 1e-8,     charge: -1/3, mass: 96,     baryon: 1/3, lepton: {e:0, m:0, t:0} },
-        AntiStrange:   { name: "AntiStrange",   lifespan: 1e-8,     charge: +1/3, mass: 96,     baryon: -1/3, lepton: {e:0, m:0, t:0} },
-    
-        Muon:          { name: "Muon",          lifespan: 2.2e-6,   charge: -1, mass: 105.7,    baryon: 0, lepton: {e:0, m:1, t:0} },
-        AntiMuon:      { name: "AntiMuon",      lifespan: 2.2e-6,   charge: +1, mass: 105.7,    baryon: 0, lepton: {e:0, m:-1, t:0} },
-
-        Pion:          { name: "Pion",          lifespan: 8.4e-17,   charge: 0, mass: 134.98,    baryon: 0, lepton: {e:0, m:0, t:0} },
-        PionMinus:     { name: "PionMinus",     lifespan: 2.6e-8,   charge: -1, mass: 139.6,    baryon: 0, lepton: {e:0, m:0, t:0} },
-        PionPlus:      { name: "PionPlus",      lifespan: 2.6e-8,   charge: +1, mass: 139.6,    baryon: 0, lepton: {e:0, m:0, t:0} },
-
-        KaonPlus:      { name: "KaonPlus",      lifespan: 1.24e-8,   charge: +1, mass: 493.7,  baryon: 0, lepton: { e:0, m:0, t:0 } },
-        KaonMinus:     { name: "KaonMinus",     lifespan: 1.24e-8,   charge: -1, mass: 493.7,  baryon: 0, lepton: { e:0, m:0, t:0 } },
-        Kaon:          { name: "Kaon",          lifespan: 0.89e-10,  charge:  0, mass: 497.6,  baryon: 0, lepton: { e:0, m:0, t:0 } },
-        
-        Eta:           { name: "Eta",           lifespan: 5e-19,     charge:  0, mass: 547.9,  baryon: 0, lepton: { e:0, m:0, t:0 } },
-        RhoPlus:       { name: "RhoPlus",        lifespan: 4.5e-24,  charge: 1,  mass: 775.11, baryon: 0, lepton: { e: 0, m: 0, t: 0 } },
-        RhoMinus:      { name: "RhoMinus",        lifespan: 4.5e-24,  charge: -1, mass: 775.11, baryon: 0, lepton: { e: 0, m: 0, t: 0 } },
-        Rho:           { name: "Rho",           lifespan: 4.4e-24,   charge:  0, mass: 775.3,  baryon: 0, lepton: { e:0, m:0, t:0 } },
-        Omega:         { name: "Omega",         lifespan: 7.8e-23,   charge:  0, mass: 782.7,  baryon: 0, lepton: { e:0, m:0, t:0 } },
-    
-        Proton:        { name: "Proton",        lifespan: Infinity, charge: +1, mass: 938.3,    baryon: 1, lepton: {e:0, m:0, t:0} },
-        AntiProton:    { name: "AntiProton",    lifespan: Infinity, charge: -1, mass: 938.3,    baryon: -1, lepton: {e:0, m:0, t:0} },
-
-        Neutron:       { name: "Neutron",       lifespan: 880,      charge: 0,  mass: 939.6,    baryon: 1, lepton: {e:0, m:0, t:0} },
-        AntiNeutron:   { name: "AntiNeutron",   lifespan: 880,      charge: 0,  mass: 939.6,    baryon: -1, lepton: {e:0, m:0, t:0} },
-        Phi:           { name: "Phi",           lifespan: 1.5e-22,   charge:  0, mass: 1019.5, baryon: 0, lepton: { e:0, m:0, t:0 } }
-        
-        Charm:         { name: "Charm",         lifespan: 1e-12,    charge: +2/3, mass: 1280,   baryon: 1/3, lepton: {e:0, m:0, t:0} },
-        AntiCharm:     { name: "AntiCharm",     lifespan: 1e-12,    charge: -2/3, mass: 1280,   baryon: -1/3, lepton: {e:0, m:0, t:0} },
-
-        Tau:           { name: "Tau",           lifespan: 2.9e-13,  charge: -1, mass: 1776.9,   baryon: 0, lepton: {e:0, m:0, t:1} },
-        AntiTau:       { name: "AntiTau",       lifespan: 2.9e-13,  charge: +1, mass: 1776.9,   baryon: 0, lepton: {e:0, m:0, t:-1} },
-
-        DMeson:        { name: "DMeson",        lifespan: 4.1e-13,   charge:  0, mass: 1864.8, baryon: 0, lepton: { e:0, m:0, t:0 } },
-        DMesonPlus:    { name: "DMesonPlus",    lifespan: 1.04e-12,  charge: +1, mass: 1869.6, baryon: 0, lepton: { e:0, m:0, t:0 } },
-        DMesonMinus:   { name: "DMesonMinus",   lifespan: 1.04e-12,  charge: -1, mass: 1869.6, baryon: 0, lepton: { e:0, m:0, t:0 } },
-
-        Jpsi:          { name: "Jpsi",          lifespan: 7.2e-21,   charge:  0, mass: 3096.9, baryon: 0, lepton: { e:0, m:0, t:0 } },
-
-        Bottom:        { name: "Bottom",        lifespan: 1.5e-12,  charge: -1/3, mass: 4180,   baryon: 1/3, lepton: {e:0, m:0, t:0} },
-        AntiBottom:    { name: "AntiBottom",    lifespan: 1.5e-12,  charge: +1/3, mass: 4180,   baryon: -1/3, lepton: {e:0, m:0, t:0} },
-    
-        BMeson:        { name: "BMeson",        lifespan: 1.5e-12,   charge:  0, mass: 5279.6, baryon: 0, lepton: { e:0, m:0, t:0 } },
-        BMesonPlus:    { name: "BMesonPlus",    lifespan: 1.6e-12,   charge: +1, mass: 5279.3, baryon: 0, lepton: { e:0, m:0, t:0 } },
-        BMesonMinus:   { name: "BMesonMinus",   lifespan: 1.6e-12,   charge: -1, mass: 5279.3, baryon: 0, lepton: { e:0, m:0, t:0 } },
-
-        Upsilon:       { name: "Upsilon",       lifespan: 1.21e-20,  charge:  0, mass: 9460.3, baryon: 0, lepton: { e:0, m:0, t:0 } },
-
-        WBosonPlus:    { name: "WBosonPlus",    lifespan: 3e-25, charge: +1, mass: 80379, baryon: 0, lepton: {e:0, m:0, t:0} },
-        WBosonMinus:   { name: "WBosonMinus",   lifespan: 3e-25, charge: -1, mass: 80379, baryon: 0, lepton: {e:0, m:0, t:0} },
-        ZBoson:        { name: "ZBoson",        lifespan: 3e-25,    charge: 0,  mass: 91187.6,  baryon: 0, lepton: {e:0, m:0, t:0} },
-    
-        Higgs:         { name: "Higgs",         lifespan: 1.6e-22,  charge: 0,  mass: 125100,   baryon: 0, lepton: {e:0, m:0, t:0} },
-
-        Top:           { name: "Top",           lifespan: 5e-25,    charge: +2/3, mass: 173000, baryon: 1/3, lepton: {e:0, m:0, t:0} },
-        AntiTop:       { name: "AntiTop",       lifespan: 5e-25,    charge: -2/3, mass: 173000, baryon: -1/3, lepton: {e:0, m:0, t:0} }
-    };
-
-    static ParticleInfo = { 
-        Photon: { name: "Photon", symbol: "γ", lifespan: Infinity, charge: 0, mass: 0, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#FFD700", antiparticle: "Photon", hadron: [] }, 
-        Gluon: { name: "Gluon", symbol: "g", lifespan: Infinity, charge: 0, mass: 0, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#32CD32", antiparticle: "Gluon", hadron: [] }, 
-        NeutrinoE: { name: "NeutrinoE", symbol: "νₑ", lifespan: Infinity, charge: 0, mass: 0.0000022, baryon: 0, lepton: {e:1, m:0, t:0}, spin: 1/2, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#FF4500", antiparticle: "AntiNeutrinoE", hadron: [] }, 
-        AntiNeutrinoE: { name: "AntiNeutrinoE", symbol: "ν̄ₑ", lifespan: Infinity, charge: 0, mass: 0.0000022, baryon: 0, lepton: {e:-1, m:0, t:0}, spin: 1/2, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#FF4500", antiparticle: "NeutrinoE", hadron: [] }, 
-        NeutrinoMu: { name: "NeutrinoMu", symbol: "ν₋", lifespan: Infinity, charge: 0, mass: 0.17, baryon: 0, lepton: {e:0, m:1, t:0}, spin: 1/2, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#8A2BE2", antiparticle: "AntiNeutrinoMu", hadron: [] }, 
-        AntiNeutrinoMu: { name: "AntiNeutrinoMu", symbol: "ν̄₋", lifespan: Infinity, charge: 0, mass: 0.17, baryon: 0, lepton: {e:0, m:-1, t:0}, spin: 1/2, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#8A2BE2", antiparticle: "NeutrinoMu", hadron: [] }, 
-        Electron: { name: "Electron", symbol: "e⁻", lifespan: Infinity, charge: -1, mass: 0.511, baryon: 0, lepton: {e:1, m:0, t:0}, spin: 1/2, isospin: -1/2, hypercharge: -1, helicity: null, fill_color: "#1E90FF", antiparticle: "Positron", hadron: [] }, 
-        Positron: { name: "Positron", symbol: "e⁺", lifespan: Infinity, charge: +1, mass: 0.511, baryon: 0, lepton: {e:-1, m:0, t:0}, spin: 1/2, isospin: -1/2, hypercharge: +1, helicity: null, fill_color: "#1E90FF", antiparticle: "Electron", hadron: [] }, 
-        Pion: { name: "Pion", symbol: "π⁰", lifespan: 8.4e-17, charge: 0, mass: 134.98, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 1, hypercharge: 0, helicity: null, fill_color: "#FF6347", antiparticle: "Pion", hadron: [] }, 
-        PionMinus: { name: "PionMinus", symbol: "π⁻", lifespan: 2.6e-8, charge: -1, mass: 139.6, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 1, hypercharge: 0, helicity: null, fill_color: "#FF6347", antiparticle: "PionPlus", hadron: ["Up", "AntiDown"] }, 
-        PionPlus: { name: "PionPlus", symbol: "π⁺", lifespan: 2.6e-8, charge: +1, mass: 139.6, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 1, hypercharge: 0, helicity: null, fill_color: "#FF6347", antiparticle: "PionMinus", hadron: ["AntiUp", "Down"] }, 
-        KaonPlus: { name: "KaonPlus", symbol: "K⁺", lifespan: 1.24e-8, charge: +1, mass: 493.7, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 1/2, hypercharge: +1/3, helicity: null, fill_color: "#FFD700", antiparticle: "KaonMinus", hadron: ["Strange", "AntiUp"] }, 
-        KaonMinus: { name: "KaonMinus", symbol: "K⁻", lifespan: 1.24e-8, charge: -1, mass: 493.7, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 1/2, hypercharge: -1/3, helicity: null, fill_color: "#FFD700", antiparticle: "KaonPlus", hadron: ["AntiStrange", "Up"] }, 
-        Kaon: { name: "Kaon", symbol: "K⁰", lifespan: 0.89e-10, charge: 0, mass: 497.6, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 1/2, hypercharge: 0, helicity: null, fill_color: "#FFD700", antiparticle: "Kaon", hadron: [] }, 
-        Eta: { name: "Eta", symbol: "η", lifespan: 5e-19, charge: 0, mass: 547.9, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#8A2BE2", antiparticle: "Eta", hadron: [] }, 
-        RhoPlus: { name: "RhoPlus", symbol: "ρ⁺", lifespan: 4.5e-24, charge: +1, mass: 775.11, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 1, hypercharge: 0, helicity: null, fill_color: "#FF4500", antiparticle: "RhoMinus", hadron: ["Up", "AntiDown"] }, 
-        RhoMinus: { name: "RhoMinus", symbol: "ρ⁻", lifespan: 4.5e-24, charge: -1, mass: 775.11, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 1, hypercharge: 0, helicity: null, fill_color: "#FF4500", antiparticle: "RhoPlus", hadron: ["AntiUp", "Down"] }, 
-        Rho: { name: "Rho", symbol: "ρ⁰", lifespan: 4.4e-24, charge: 0, mass: 775.3, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 1, hypercharge: 0, helicity: null, fill_color: "#FF4500", antiparticle: "Rho", hadron: [] }, 
-        Omega: { name: "Omega", symbol: "Ω", lifespan: 7.8e-23, charge: 0, mass: 782.7, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#8B4513", antiparticle: "Omega", hadron: [] }, 
-        Phi: { name: "Phi", symbol: "ϕ", lifespan: 1.3e-23, charge: 0, mass: 1019.5, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 1, isospin: 0, hypercharge: 0, helicity: null, fill_color: "#800080", antiparticle: "Phi", hadron: [] }, 
-        BMeson: { name: "BMeson", symbol: "B⁰", lifespan: 1.5e-12, charge: 0, mass: 5279.6, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 0.5, hypercharge: 0, helicity: null, fill_color: "#228B22", antiparticle: "AntiBMeson", hadron: ["AntiBottom", "Down"] }, 
-        DMesonPlus: { name: "DMesonPlus", symbol: "D⁺", lifespan: 1.04e-12, charge: +1, mass: 1869.6, baryon: 0, lepton: {e:0, m:0, t:0}, spin: 0, isospin: 0.5, hypercharge: 0, helicity: null, fill_color: "#8A2BE2", antiparticle: "DMesonMinus", hadron: ["Charm", "AntiDown"] } 
-    };
-
-
-   static HandleDecay(particle){
-    if (Decay.CheckForDecay(particle)) {
-        let combos = Decay.DetermineCombinations(particle);
-        let sorted_combos = Object.values(combos).sort((a, b) => a.pct - b.pct);
-
-        if (sorted_combos.length > 0) {
-            // Calculate total probability sum for weighted selection
-            let totalPct = sorted_combos.reduce((sum, combo) => sum + combo.pct, 0);
-            
-            // Generate a random number between 0 and totalPct
-            let randomPick = Math.random() * totalPct;
-
-            // Find the decay mode based on the random selection
-            let cumulativePct = 0;
-            let selectedCombo = null;
-
-            for (let combo of sorted_combos) {
-                cumulativePct += combo.pct;
-                if (randomPick <= cumulativePct) {
-                    selectedCombo = combo;
-                    break;
-                }
-            }
-
-            if (selectedCombo) {
-                // Create new particles based on the selected combination
-                let decayProducts = selectedCombo.particles.map(name => {
-                    let info = Decay.ParticleInfo[name];
-                    return {
-                        name: info.name,
-                        charge: info.charge,
-                        mass: info.mass,
-                        baryon: info.baryon,
-                        lepton: { ...info.lepton },
-                        age: 0, // new particles are just born
-                    };
-                });
-
-                return decayProducts;
-            }
-        } else {
-            console.warn(`No valid decay modes found for ${particle.name}`);
-            return null;
-        }
-    }
-    return null; // No decay
-}
-
-static DetermineCombinations(particle){
-    let combos = [];
-    let particles = Object.values(Decay.ParticleInfo);
-    let num_particles = particles.length;
-
-    for (let I = 0; I < num_particles; I++) {
-        let pI = particles[I]; 
-        for (let J = I + 1; J < num_particles; J++) {
-            let pJ = particles[J];
-            let m = pI.mass + pJ.mass;
-            let c = pI.charge + pJ.charge;
-            let b = pI.baryon + pJ.baryon;
-            let le = pI.lepton.e + pJ.lepton.e;
-            let lm = pI.lepton.m + pJ.lepton.m;
-            let lt = pI.lepton.t + pJ.lepton.t;
-
-            // 2-particle combinations
-            let checkJ = Decay.CheckCombination(particle, m, c, b, le, lm, lt);
-            if (checkJ === -1) break; // future pJ only increase mass
-            if (checkJ === 1) combos.push({ particles: [Decay.ParticleInfo[pI.name], Decay.ParticleInfo[pJ.name]], pct: Math.pow((particle.mass - m), 2) });
-
-            // 3-particle combinations
-            for (let K = 0; K < num_particles; K++) {
-                let pK = particles[K];
-                let checkK = Decay.CheckCombination(particle,
-                    m + pK.mass,
-                    c + pK.charge,
-                    b + pK.baryon,
-                    le + pK.lepton.e,
-                    lm + pK.lepton.m,
-                    lt + pK.lepton.t
-                );
-                if (checkK === -1) break; // future pK only increase mass
-                if (checkK === 1) combos.push({ particles: [Decay.ParticleInfo[pI.name], Decay.ParticleInfo[pJ.name], Decay.ParticleInfo[pK.name]], pct: Math.pow((particle.mass - m), 2) });
-
-                // 4-particle combinations
-                for (let L = 0; L < num_particles; L++) {
-                    let pL = particles[L];
-                    let checkL = Decay.CheckCombination(particle,
-                        m + pK.mass + pL.mass,
-                        c + pK.charge + pL.charge,
-                        b + pK.baryon + pL.baryon,
-                        le + pK.lepton.e + pL.lepton.e,
-                        lm + pK.lepton.m + pL.lepton.m,
-                        lt + pK.lepton.t + pL.lepton.t
-                    );
-                    if (checkL === -1) break; // future pL only increase mass
-                    if (checkL === 1) combos.push({ particles: [Decay.ParticleInfo[pI.name], Decay.ParticleInfo[pJ.name], Decay.ParticleInfo[pK.name], Decay.ParticleInfo[pL.name]], pct: Math.pow((particle.mass - m), 2) });
-                }
-            }
-        }
-    }
-
-    return combos;
-}
-
-
-    static CheckCombination(p1, m, c, b, le, lm, lt){
-        if(p1.mass > m){
-            return (p1.charge === c &&
-                    p1.baryon === b &&
-                    p1.lepton.e === le &&
-                    p1.lepton.m === lm &&
-                    p1.lepton.t === lt) ? 1 : 0;
-        }
-        return -1;
-    }
-    
     static CheckForDecay(particle){
-        return (particle.age > Decay.ParticleInfo[particle.name].lifespan);
+        return (particle.age > Constants.ParticleInfo[particle.name].lifespan);
     }
     
     static HandleDecay(particle){
@@ -250,7 +28,7 @@ static DetermineCombinations(particle){
                 }
     
                 if (selectedCombo) {
-                    Decay.CalculateDecay(particle, selectedCombo.particles);
+                    Decay.DecayInto(particle, selectedCombo.particles);
                 }
             } else {
                 console.warn(`No valid decay modes found for ${particle.name}`);
@@ -259,31 +37,139 @@ static DetermineCombinations(particle){
         }
         return null; // No decay
     }
-
-    // General decay calculation for 2 to 4 products
-    static CalculateDecay(particle, decayProducts) {
-        const totalEnergy = Decay.EnergyMomentum(particle);
-        const totalMomentum = particle.momentum;
-
-        // Determine the number of decay products (2, 3, or 4)
-        const numDecayProducts = decayProducts.length;
-
-        // Total mass of decay products
-        let totalDecayMass = 0;
-        decayProducts.forEach(prod => totalDecayMass += prod.mass);
-
-        // Simplified approach: Calculate energies and momenta for the decay products
-        // Note: More complex kinematics should be applied for realistic scenarios
-
-        let decayResults = [];
-        for (let i = 0; i < numDecayProducts; i++) {
-            const mass = decayProducts[i].mass;
-            const energy = totalEnergy / numDecayProducts; // Distribute energy equally (idealized)
-            const momentum = Math.sqrt(Math.pow(energy, 2) - Math.pow(mass, 2));
-            //todo add vx, vy
-            Simulation.AddParticle(new Particle(decayProducts[i].name, particle.x, particle.y, vx, vy);
+    static DetermineCombinations(particle){
+        let combos = [];
+        let particles = Object.values(Constants.ParticleInfo);
+        let num_particles = particles.length;
+    
+        for (let I = 0; I < num_particles; I++) {
+            let pI = particles[I]; 
+            for (let J = I + 1; J < num_particles; J++) {
+                let pJ = particles[J];
+                let m = pI.mass + pJ.mass;
+                let c = pI.charge + pJ.charge;
+                let b = pI.baryon + pJ.baryon;
+                let le = pI.lepton.e + pJ.lepton.e;
+                let lm = pI.lepton.m + pJ.lepton.m;
+                let lt = pI.lepton.t + pJ.lepton.t;
+    
+                // 2-particle combinations
+                let checkJ = Decay.CheckCombination(particle, m, c, b, le, lm, lt);
+                if (checkJ === -1) break; // future pJ only increase mass
+                if (checkJ === 1) combos.push({ particles: [Constants.ParticleInfo[pI.name], Constants.ParticleInfo[pJ.name]], pct: Math.pow((particle.mass - m), 2) });
+    
+                // 3-particle combinations
+                for (let K = 0; K < num_particles; K++) {
+                    let pK = particles[K];
+                    let checkK = Decay.CheckCombination(particle,
+                        m + pK.mass,
+                        c + pK.charge,
+                        b + pK.baryon,
+                        le + pK.lepton.e,
+                        lm + pK.lepton.m,
+                        lt + pK.lepton.t
+                    );
+                    if (checkK === -1) break; // future pK only increase mass
+                    if (checkK === 1) combos.push({ particles: [Constants.ParticleInfo[pI.name], Constants.ParticleInfo[pJ.name], Constants.ParticleInfo[pK.name]], pct: Math.pow((particle.mass - m), 2) });
+    
+                    // 4-particle combinations
+                    for (let L = 0; L < num_particles; L++) {
+                        let pL = particles[L];
+                        let checkL = Decay.CheckCombination(particle,
+                            m + pK.mass + pL.mass,
+                            c + pK.charge + pL.charge,
+                            b + pK.baryon + pL.baryon,
+                            le + pK.lepton.e + pL.lepton.e,
+                            lm + pK.lepton.m + pL.lepton.m,
+                            lt + pK.lepton.t + pL.lepton.t
+                        );
+                        if (checkL === -1) break; // future pL only increase mass
+                        if (checkL === 1) combos.push({ particles: [Constants.ParticleInfo[pI.name], Constants.ParticleInfo[pJ.name], Constants.ParticleInfo[pK.name], Constants.ParticleInfo[pL.name]], pct: Math.pow((particle.mass - m), 2) });
+                    }
+                }
+            }
         }
-
-        particle.destroy();
+    
+        return combos;
     }
+    
+    static CheckCombination(p1, m, c, b, le, lm, lt){
+        if(p1.mass > m){
+            return (p1.charge === c &&
+                    p1.baryon === b &&
+                    p1.lepton.e === le &&
+                    p1.lepton.m === lm &&
+                    p1.lepton.t === lt) ? 1 : 0;
+        }
+        return -1;
+    }
+    
+    static DecayInto(particle, decayProducts) {
+        // 1. Check decay is possible (mass threshold)
+        const totalDecayMass = decayProducts.reduce((sum, p) => sum + p.mass, 0);
+        if (totalDecayMass > particle.mass) {
+            console.error("Decay impossible: insufficient mass");
+            return;
+        }
+    
+        // 2. Calculate energies/momenta using conservation laws
+        const E_parent = particle.mass; // Parent at rest
+        let p = []; // Momenta magnitudes for decay products
+        let directions = []; // Unit vectors for momentum directions
+    
+        // 3. Handle common decay types
+        switch(decayProducts.length) {
+            case 2: // Two-body decay (exact solution)
+                const m1 = decayProducts[0].mass;
+                const m2 = decayProducts[1].mass;
+                
+                const p_mag = Math.sqrt((E_parent**2 - (m1 + m2)**2) * (E_parent**2 - (m1 - m2)**2)) / (2 * E_parent);
+    
+                // Opposite directions for momentum conservation
+                p = [p_mag, p_mag];
+                directions = [
+                    {x: 1, y: 0},  // Arbitrary direction
+                    {x: -1, y: 0} // Opposite direction
+                ];
+                break;
+    
+            case 3: // Three-body decay (simplified phase space)
+                // Use iterative method or precomputed tables
+                // This is a placeholder - real implementation requires
+                // Dalitz plot calculations or experimental data
+                decayProducts.forEach(prod => {
+                    const energy = (E_parent - totalDecayMass) * Math.random() + prod.mass;
+                    p.push(Math.sqrt(energy**2 - prod.mass**2));
+                });
+                directions = Decay.GenerateIsotropicDirections(3); // Random angles
+                break;
+    
+            default: // Generic multi-body (energy-momentum not strictly conserved)
+                console.warn("Using simplified multi-body decay model");
+                decayProducts.forEach(prod => {
+                    const energy = E_parent/decayProducts.length;
+                    p.push(Math.sqrt(energy**2 - prod.mass**2));
+                });
+                directions = Decay.GenerateIsotropicDirections(decayProducts.length);
+        }
+    
+        // 4. Create particles with calculated momenta
+        decayProducts.forEach((prod, i) => {
+            const v = (p[i] / prod.mass) / Math.sqrt(1 + (p[i]/prod.mass)**2); // Relativistic speed
+            const vx = v * directions[i].x;
+            const vy = v * directions[i].y;
+            Simulation.AddParticle(prod.name, particle.x, particle.y, vx, vy);
+        });
+    
+        Simulation.RemoveParticle(particle);
+    }
+    
+    // Helper for random direction vectors
+    static GenerateIsotropicDirections(n) {
+        return Array.from({length: n}, () => {
+            const angle = 2 * Math.PI * Math.random();
+            return {x: Math.cos(angle), y: Math.sin(angle)};
+        });
+    }
+
 }
