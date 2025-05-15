@@ -53,10 +53,10 @@ class Constants {
         AntiSigmaPlus: { symbol:"Σ̄⁻",spin:0.5,isospin:1,hypercharge:0,helicity:[-1,1],fill_color:"#D2B48C",name:"AntiSigmaPlus",antiparticle:"SigmaMinus",hadron:["AntiDown","AntiDown","AntiStrange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:1.160,lifespan:1.5e-10,charge:1,mass:1197.4,baryon:-1,lepton:{e:0,m:0,t:0} },
         AntiSigmaMinus:{ symbol:"Σ̄⁺",spin:0.5,isospin:1,hypercharge:0,helicity:[-1,1],fill_color:"#F4A460",name:"AntiSigmaMinus",antiparticle:"SigmaPlus",hadron:["AntiUp","AntiUp","AntiStrange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:-2.458,lifespan:0.8e-10,charge:-1,mass:1189.4,baryon:-1,lepton:{e:0,m:0,t:0} },
         XiZero:        { symbol:"Ξ⁰",spin:0.5,isospin:[1/2,1/2,1/2,1/2,0],hypercharge:-1,helicity:[-1,1],fill_color:"#DAA520",name:"XiZero",antiparticle:"AntiXiZero",hadron:["Up","Strange","Strange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:-1.250,lifespan:2.9e-10,charge:0,mass:1314.9,baryon:1,lepton:{e:0,m:0,t:0} },
-        XiMinus:       { symbol:"Ξ⁻",spin:0.5,isospin:0.5,hypercharge:-1,helicity:[-1,1],fill_color:"#B8860B",name:"XiMinus",antiparticle:"AntiXiPlus",hadron:["Down","Strange","Strange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:-0.650,lifespan:1.6e-10,charge:-1,mass:1321.7,baryon:1,lepton:{e:0,m:0,t:0} },
+        XiMinus:       { symbol:"Ξ⁻",spin:0.5,isospin:[1/2,-1/2,1/2,-1/2,0],hypercharge:-1,helicity:[-1,1],fill_color:"#B8860B",name:"XiMinus",antiparticle:"AntiXiPlus",hadron:["Down","Strange","Strange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:-0.650,lifespan:1.6e-10,charge:-1,mass:1321.7,baryon:1,lepton:{e:0,m:0,t:0} },
         AntiXiZero:    { symbol:"Ξ̄⁰",spin:0.5,isospin:0.5,hypercharge:1,helicity:[-1,1],fill_color:"#BDB76B",name:"AntiXiZero",antiparticle:"XiZero",hadron:["AntiUp","AntiStrange","AntiStrange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:1.250,lifespan:2.9e-10,charge:0,mass:1314.9,baryon:-1,lepton:{e:0,m:0,t:0} },
         AntiXiPlus:    { symbol:"Ξ̄⁺",spin:0.5,isospin:0.5,hypercharge:1,helicity:[-1,1],fill_color:"#FFD700",name:"AntiXiPlus",antiparticle:"XiMinus",hadron:["AntiUp","AntiStrange","AntiStrange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:0.650,lifespan:1.6e-10,charge:1,mass:1321.7,baryon:-1,lepton:{e:0,m:0,t:0} },
-        OmegaMinus:    { symbol:"Ω⁻",spin:1.5,isospin:0,hypercharge:-2,helicity:[-1,1],fill_color:"#BDB76B",name:"OmegaMinus",antiparticle:"AntiOmegaPlus",hadron:["Strange","Strange","Strange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:-2.02,lifespan:0.82e-10,charge:-1,mass:1672.5,baryon:1,lepton:{e:0,m:0,t:0} },
+        OmegaMinus:    { symbol:"Ω⁻",spin:1.5,isospin:[0,0,0,0,0],hypercharge:-2,helicity:[-1,1],fill_color:"#BDB76B",name:"OmegaMinus",antiparticle:"AntiOmegaPlus",hadron:["Strange","Strange","Strange"],generation:null,parity:1,C_parity:null,G_parity:null,magnetic_moment:-2.02,lifespan:0.82e-10,charge:-1,mass:1672.5,baryon:1,lepton:{e:0,m:0,t:0} },
         
         // Mesons (quark-antiquark)
         PionPlus:      { symbol:"π⁺",spin:0,isospin:1,hypercharge:0,helicity:[0],fill_color:"#D3D3D3",name:"PionPlus",antiparticle:"PionMinus",hadron:["Up","AntiDown"],generation:null,parity:-1,C_parity:null,G_parity:1,magnetic_moment:0,lifespan:2.6e-8,charge:1,mass:139.6,baryon:0,lepton:{e:0,m:0,t:0} },
@@ -109,6 +109,23 @@ class Constants {
         Pcs4459:     { name:"Pcs4459",     symbol:"Pcs⁰(4459)", spin:1/2, isospin:0, hypercharge:0,  helicity:[-1,1], fill_color:"#9966cc", antiparticle:"AntiPcs4459",   hadron:["Up","Down","Strange","Charm","AntiCharm"], generation:null, parity:1,  C_parity:null, G_parity:null, magnetic_moment:0, lifespan:1e-23, charge:0,  mass:4459, baryon:1, lepton:{e:0,m:0,t:0} },
         AntiPcs4459: { name:"AntiPcs4459", symbol:"Pcs⁰(4459)", spin:1/2, isospin:0, hypercharge:0,  helicity:[-1,1], fill_color:"#cc6699", antiparticle:"Pcs4459",        hadron:["AntiUp","AntiDown","AntiStrange","AntiCharm","Charm"], generation:null, parity:1,  C_parity:null, G_parity:null, magnetic_moment:0, lifespan:1e-23, charge:0,  mass:4459, baryon:-1, lepton:{e:0,m:0,t:0} } 
     };
+
+    static CalcIsoSpin(particle){
+        let I = 0, I3 = 1, T = 2, T3L = 3, T3R = 4;
+        let total_isospin = [0,0,0,0,0];
+        if(particle?.hadron?.length > 0){
+            let num_hadrons = particle.hadron.length;
+            for(let h = 0; h < num_hadrons; h++){
+                let iso = Constants.ParticleInfo[particle.hadron[h]].isospin;
+                total_isospin[I] += iso[I];
+                total_isospin[I3] += iso[I3];
+                total_isospin[T] += iso[T];
+                total_isospin[T3L] += iso[T3L];
+                total_isospin[T3R] += iso[T3R];
+            }
+            particle.isospin = total_isospin;
+        }
+    }
         
         
 }
