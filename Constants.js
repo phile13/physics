@@ -96,7 +96,7 @@ class Constants {
         BMesonStar:   { symbol: "B*⁰", spin: 1, isospin: [], hypercharge: -1, chirality_pct : null, fill_color: "#B8860B",  name: "BMesonStar", antiparticle: "BMesonStar", hadron: ["Down","AntiBottom"], generation: null,  parity: -1, C_parity: null, G_parity: null, magnetic_moment: 0,  base_lifespan: null, charge: 0, mass: 5325.2, baryon: 0, lepton: {e:0,m:0,t:0}},
         BsMesonStar:  { symbol: "B*_s⁰", spin: 1, isospin: [], hypercharge: 0, chirality_pct : null, fill_color: "#FFD700",  name: "BsMesonStar", antiparticle: "BsMesonStar", hadron: ["Strange","AntiBottom"], generation: null,  parity: -1, C_parity: null, G_parity: null, magnetic_moment: 0,  base_lifespan: null, charge: 0, mass: 5415.4, baryon: 0, lepton: {e:0,m:0,t:0}},
         BcMesonPlus:  { symbol: "B_c⁺", spin: 0, isospin: [], hypercharge: 0, chirality_pct : null, fill_color: "#DAA520",  name: "BcMesonPlus", antiparticle: "BcMesonMinus", hadron: ["Charm","AntiBottom"], generation: null,  parity: -1, C_parity: null, G_parity: null, magnetic_moment: 0,  base_lifespan: 0.510e-12, charge: 1, mass: 6274.9, baryon: 0, lepton: {e:0,m:0,t:0}},
-        BcMesonMinus: { symbol: "B_c⁻", spin: 0, isospin: [], hypercharge: 0, chirality_pct : null, fill_color: "#BDB76B",  name: "BcMesonMinus", antiparticle: "BcMesonPlus", hadron: ["Bottom","AntiCharm"], generation: null,  parity: -1, C_parity: null, G_parity: null, magnetic_moment: 0,  base_lifespan: 0.510e-12, charge: -1, mass: 6274.9, baryon: 0, lepton: {e:0,m:0,t:0}}
+        BcMesonMinus: { symbol: "B_c⁻", spin: 0, isospin: [], hypercharge: 0, chirality_pct : null, fill_color: "#BDB76B",  name: "BcMesonMinus", antiparticle: "BcMesonPlus", hadron: ["Bottom","AntiCharm"], generation: null,  parity: -1, C_parity: null, G_parity: null, magnetic_moment: 0,  base_lifespan: 0.510e-12, charge: -1, mass: 6274.9, baryon: 0, lepton: {e:0,m:0,t:0}},
         
         Pc4312:      { name:"Pc4312",      symbol:"Pc⁺(4312)", spin:1/2, isospin:[], hypercharge:1,  chirality_pct : null, fill_color:"#cc6699", antiparticle:"AntiPc4312",   hadron:["Up","Up","Down","Charm","AntiCharm"],   generation:null, parity:1,  C_parity:null, G_parity:null, magnetic_moment:0, base_lifespan:1e-23, charge:1,  mass:4312, baryon:1, lepton:{e:0,m:0,t:0} },
         AntiPc4312:  { name:"AntiPc4312",  symbol:"Pc⁻(4312)", spin:1/2, isospin:[], hypercharge:-1, chirality_pct : null, fill_color:"#9966cc", antiparticle:"Pc4312",        hadron:["AntiUp","AntiUp","AntiDown","AntiCharm","Charm"], generation:null, parity:1,  C_parity:null, G_parity:null, magnetic_moment:0, base_lifespan:1e-23, charge:-1, mass:4312, baryon:-1, lepton:{e:0,m:0,t:0} },
@@ -138,9 +138,10 @@ class Constants {
             let cpct = particle_info.chirality_pct || Math.random(); // if at random we will need its quarks to add up to this value
             let a = cpct * Math.random();
             let b = (1-cpct) * Math.random();
-            particle_info.chirality =  (a / (a+b)) + 1e30; //this is the pct make up of left vs right chirality
-            particle_info.lifespan = particle_info.base_lifespan / (this.chirality ** 2);
-            particle_info.chirality_int = ( particle_info.chirality < .5 ) ? 1 : -1;   
+            let c = (a / (a+b));
+            particle_info.chirality =  (c < .1) ? .1 : (c > .9) ? .9 : c; //this is the pct make up of left vs right chirality
+            particle_info.lifespan = -particle_info.base_lifespan * Math.log(particle_info.chirality); // the larger the 
+            particle_info.chirality_int = ( particle_info.chirality > .5 ) ? 1 : 0;   
                 
             
             particle_info.helicity_handed = 
