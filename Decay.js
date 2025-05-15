@@ -173,3 +173,47 @@ class Decay {
     }
 
 }
+
+function applyBremsstrahlung({vx, vy, ax, ay, mass, charge, dt}) {
+  const c = 3e8;
+  const h = 6.626e-34;
+
+  const a2 = ax * ax + ay * ay;
+  if (a2 === 0) return { new_vx: vx, new_vy: vy, photon: null };
+
+  const epsilon0 = 8.854e-12;
+  const P = (charge ** 2 * a2) / (6 * Math.PI * epsilon0 * c ** 3);
+  const E_gamma = P * dt;
+
+  // Photon direction (unit vector along acceleration)
+  const a_mag = Math.sqrt(a2);
+  const ax_unit = ax / a_mag;
+  const ay_unit = ay / a_mag;
+
+  // Photon momentum
+  const p_gamma = E_gamma / c;
+  const p_gamma_x = p_gamma * ax_unit;
+  const p_gamma_y = p_gamma * ay_unit;
+
+  // Updated particle momentum
+  const p_x = mass * vx - p_gamma_x;
+  const p_y = mass * vy - p_gamma_y;
+
+  // New particle velocity
+  const new_vx = p_x / mass;
+  const new_vy = p_y / mass;
+
+  // Photon wavelength
+  const lambda = (h * c) / E_gamma;
+
+  return {
+    new_vx,
+    new_vy,
+    photon: {
+      vx: ax_unit * c,
+      vy: ay_unit * c,
+      wavelength: lambda
+    }
+  };
+}
+
