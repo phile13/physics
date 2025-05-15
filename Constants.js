@@ -3,7 +3,7 @@ class Constants {
         // Gauge bosons
         Photon:        { symbol:"γ",spin:1,isospin:[0,0,0,0,0],hypercharge:0,chirality_pct : .5,fill_color:"#FFD700",name:"Photon",antiparticle:"Photon",hadron:[],generation:null,parity:-1,C_parity:-1,G_parity:null,magnetic_moment:0,base_lifespan:Infinity,charge:0,mass:0,baryon:0,lepton:{e:0,m:0,t:0} },
         Gluon:         { symbol:"g",spin:1,isospin:[0,0,0,0,0],hypercharge:0,chirality_pct : .5,fill_color:"#FF4500",name:"Gluon",antiparticle:"Gluon",hadron:[],generation:null,parity:-1,C_parity:null,G_parity:null,magnetic_moment:0,base_lifespan:Infinity,charge:0,mass:0,baryon:0,lepton:{e:0,m:0,t:0} },
-        WBosonPlus:    { symbol:"W⁺",spin:1,isospin:[0,0,1,1,1],hypercharge:0,chirality_pct : 0,fill_color:"#00BFFF",name:"WBosonPlus",antiparticle:"WBosonMinus",hadron:[],generation:null,parity:-1,C_parity:null,G_parity:null,magnetic_moment:0,base_lifespan:3e-25,charge:1,mass:80379,baryon:0,lepton:{e:0,m:0,t:0} },
+        WBosonPlus:    { symbol:"W⁺",spin:1,isospin:[0,0,1,1,1],hypercharge:0,chirality_pct : 1,fill_color:"#00BFFF",name:"WBosonPlus",antiparticle:"WBosonMinus",hadron:[],generation:null,parity:-1,C_parity:null,G_parity:null,magnetic_moment:0,base_lifespan:3e-25,charge:1,mass:80379,baryon:0,lepton:{e:0,m:0,t:0} },
         WBosonMinus:   { symbol:"W⁻",spin:1,isospin:[0,0,1,-1,-1],hypercharge:0,chirality_pct : 1,fill_color:"#1E90FF",name:"WBosonMinus",antiparticle:"WBosonPlus",hadron:[],generation:null,parity:-1,C_parity:null,G_parity:null,magnetic_moment:0,base_lifespan:3e-25,charge:-1,mass:80379,baryon:0,lepton:{e:0,m:0,t:0} },
         ZBoson:        { symbol:"Z",spin:1,isospin:[0,0,1,0,0],hypercharge:0,chirality_pct : .6,fill_color:"#A9A9A9",name:"ZBoson",antiparticle:"ZBoson",hadron:[],generation:null,parity:-1,C_parity:1,G_parity:null,magnetic_moment:0,base_lifespan:3e-25,charge:0,mass:91187.6,baryon:0,lepton:{e:0,m:0,t:0} },
         
@@ -138,7 +138,7 @@ class Constants {
             let cpct = particle_info.chirality_pct || Math.random(); // if at random we will need its quarks to add up to this value
             let a = cpct * Math.random();
             let b = (1-cpct) * Math.random();
-            particle_info.chirality =  (a / (a+b)) + 1e30;
+            particle_info.chirality =  (a / (a+b)) + 1e30; //this is the pct make up of left vs right chirality
             particle_info.lifespan = particle_info.base_lifespan / (this.chirality ** 2);
             particle_info.chirality_int = ( particle_info.chirality < .5 ) ? 1 : -1;   
                 
