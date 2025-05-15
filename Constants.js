@@ -135,13 +135,13 @@ class Constants {
                 particle_info.isospin = Constants.CalcIsoSpin(particle_info);
             }
             
-            let cpct = particle_info.chirality_pct || Math.random(); // if at random we will need its quarks to add up to this value
+            let cpct = particle_info.chirality_pct || Math.random(); // if at random we will need its quarks to add up to this value other wise this is the pct of left chirality
             let a = cpct * Math.random();
             let b = (1-cpct) * Math.random();
             let c = (a / (a+b));
             particle_info.chirality =  (c < .1) ? .1 : (c > .9) ? .9 : c; //this is the pct make up of left vs right chirality
-            particle_info.lifespan = -particle_info.base_lifespan * Math.log(particle_info.chirality); // the larger the 
-            particle_info.chirality_int = ( particle_info.chirality > .5 ) ? 1 : 0;   
+            particle_info.lifespan = -particle_info.base_lifespan * Math.log(particle_info.chirality); // the larger the left chirality the shorter the life (weak force decay)
+            particle_info.chirality_name = ( particle_info.chirality > .5 ) ? 1 : 0;   
                 
             
             particle_info.helicity_handed = 
