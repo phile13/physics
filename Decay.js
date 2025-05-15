@@ -176,7 +176,7 @@ class Decay {
 
 function applyBremsstrahlung({vx, vy, ax, ay, mass, charge, dt}) {
   const c = 3e8;
-  const h = 6.626e-34;
+  const h = 6.626e-34;//plank constant
 
   const a2 = ax * ax + ay * ay;
   if (a2 === 0) return { new_vx: vx, new_vy: vy, photon: null };
