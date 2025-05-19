@@ -1,9 +1,12 @@
 class Constants {
+    // 2 PI
+    static TWO_PI = 2 * Math.PI
+    
     // Planck constant (Joule seconds)
     static PLANCK = 6.62607015e-34;
 
     // Reduced Planck constant (ħ = h / 2π) (Joule seconds)
-    static HBAR = 6.62607015e-34 / (2 * Math.PI);
+    static HBAR = 6.62607015e-34 / (Constants.TWO_PI);
 
     // Speed of light in vacuum (meters per second)
     static SPEED_OF_LIGHT = 299792458;
@@ -24,7 +27,7 @@ class Constants {
     static VACUUM_PERMEABILITY = 4 * Math.PI * 1e-7;
 
     // Standard acceleration due to gravity (m/s^2)
-    static GRAVITY = 9.81;
+    static GRAVITY = 9.80665;
 
     // Elementary charge (Coulombs)
     static ELECTRON_CHARGE = 1.602176634e-19;
@@ -254,8 +257,7 @@ class ElectromagnetismFormulas {
      * @returns {number} Electric field magnitude in N/C
      */
     static ElectricFieldPointCharge(q, r) {
-        const k = 8.9875517923e9; // Coulomb's constant (N·m²/C²)
-        return k * q / (r * r);
+        return Constants.COULOMB * q / (r * r);
     }
 
     /**
@@ -266,8 +268,7 @@ class ElectromagnetismFormulas {
      * @returns {number} Magnetic field in Tesla (T)
      */
     static MagneticFieldLoop(I, R) {
-        const mu0 = 4 * Math.PI * 1e-7; // Vacuum permeability (T·m/A)
-        return (mu0 * I) / (2 * R);
+        return (Constants.VACUUM_PERMEABILITY * I) / (2 * R);
     }
 
     /**
@@ -334,10 +335,10 @@ class ClassicalMechanicsFormulas {
      * U = m g h
      * @param {number} mass - Mass in kilograms (kg)
      * @param {number} height - Height above reference in meters (m)
-     * @param {number} g - Acceleration due to gravity in m/s^2 (default 9.81)
+     * @param {number} g - Acceleration due to gravity in m/s^2 (default 9.80665)
      * @returns {number} Potential energy in Joules (J)
      */
-    static GravitationalPotentialEnergy(mass, height, g = 9.81) {
+    static GravitationalPotentialEnergy(mass, height, g = 9.80665) {
         return mass * g * height;
     }
 
@@ -345,11 +346,11 @@ class ClassicalMechanicsFormulas {
      * Calculates the period of a simple pendulum (small angles).
      * T = 2π * sqrt(L / g)
      * @param {number} length - Length of the pendulum in meters (m)
-     * @param {number} g - Acceleration due to gravity in m/s^2 (default 9.81)
+     * @param {number} g - Acceleration due to gravity in m/s^2 (default 9.80665)
      * @returns {number} Period in seconds (s)
      */
-    static PendulumPeriod(length, g = 9.81) {
-        return 2 * Math.PI * Math.sqrt(length / g);
+    static PendulumPeriod(length, g = 9.80665) {
+        return Constants.TWO_PI * Math.sqrt(length / g);
     }
 
     /**
@@ -375,10 +376,10 @@ class FluidMechanicsFormulas {
      * @param {number} h1 - Height at point 1 in meters (m)
      * @param {number} v2 - Velocity at point 2 in m/s
      * @param {number} h2 - Height at point 2 in meters (m)
-     * @param {number} g - Gravitational acceleration in m/s^2 (default 9.81)
+     * @param {number} g - Gravitational acceleration in m/s^2 (default 9.80665)
      * @returns {number} Pressure at point 2 in Pascals (Pa)
      */
-    static BernoulliPressure(P1, rho, v1, h1, v2, h2, g = 9.81) {
+    static BernoulliPressure(P1, rho, v1, h1, v2, h2, g = 9.80665) {
         return P1 + 0.5 * rho * v1 * v1 + rho * g * h1 - 0.5 * rho * v2 * v2 - rho * g * h2;
     }
 
@@ -419,8 +420,7 @@ class GravitationFormulas {
      * @returns {number} Gravitational force in Newtons (N)
      */
     static GravitationalForce(m1, m2, r) {
-        const G = 6.67430e-11; // Gravitational constant (m^3·kg^-1·s^-2)
-        return G * m1 * m2 / (r * r);
+        return Constants.GRAVITATIONAL * m1 * m2 / (r * r);
     }
 
     /**
@@ -431,8 +431,7 @@ class GravitationFormulas {
      * @returns {number} Escape velocity in meters per second (m/s)
      */
     static EscapeVelocity(M, R) {
-        const G = 6.67430e-11;
-        return Math.sqrt(2 * G * M / R);
+        return Math.sqrt(2 * Constants.GRAVITATIONAL * M / R);
     }
 
     /**
@@ -444,8 +443,7 @@ class GravitationFormulas {
      * @returns {number} Potential energy in Joules (J)
      */
     static GravitationalPotentialEnergy(m1, m2, r) {
-        const G = 6.67430e-11;
-        return -G * m1 * m2 / r;
+        return -Constants.GRAVITATIONAL * m1 * m2 / r;
     }
 }
 
@@ -468,7 +466,7 @@ class WaveTheoryFormulas {
      * @returns {number} Angular frequency in radians per second (rad/s)
      */
     static AngularFrequency(frequency) {
-        return 2 * Math.PI * frequency;
+        return Constants.TWO_PI * frequency;
     }
 
     /**
@@ -478,7 +476,7 @@ class WaveTheoryFormulas {
      * @returns {number} Wave number in radians per meter (rad/m)
      */
     static WaveNumber(wavelength) {
-        return 2 * Math.PI / wavelength;
+        return Constants.TWO_PI / wavelength;
     }
 
     /**
@@ -500,9 +498,7 @@ class PhotonicsFormulas {
      * @returns {number} Photon energy in Joules (J)
      */
     static PhotonEnergy(wavelength) {
-        const h = 6.62607015e-34;
-        const c = 299792458;
-        return (h * c) / wavelength;
+        return (Constants.PLANCK * Constants.SPEED_OF_LIGHT) / wavelength;
     }
 
     /**
@@ -512,8 +508,7 @@ class PhotonicsFormulas {
      * @returns {number} Momentum in kg·m/s
      */
     static PhotonMomentum(wavelength) {
-        const h = 6.62607015e-34;
-        return h / wavelength;
+        return Constants.PLANCK / wavelength;
     }
 
     /**
@@ -523,8 +518,7 @@ class PhotonicsFormulas {
      * @returns {number} Refractive index (dimensionless)
      */
     static RefractiveIndex(speedInMedium) {
-        const c = 299792458;
-        return c / speedInMedium;
+        return Constants.SPEED_OF_LIGHT / speedInMedium;
     }
 }
 
@@ -568,8 +562,7 @@ class RelativisticFormulas {
      * @returns {number} Dilated time interval in seconds (s)
      */
     static TimeDilation(deltaT, velocity) {
-        const c = 299792458;
-        return deltaT / Math.sqrt(1 - (velocity * velocity) / (c * c));
+        return deltaT * RelativisticFormulas.Gamma(velocity);
     }
 
     /**
@@ -580,10 +573,29 @@ class RelativisticFormulas {
      * @returns {number} Contracted length in meters (m)
      */
     static LengthContraction(length, velocity) {
-        const c = 299792458;
-        return length * Math.sqrt(1 - (velocity * velocity) / (c * c));
+        return length * RelativisticFormulas.GammaReciprocal(velocity);
     }
-
+    
+    /**
+     * Calculates relativistic momentum.
+     * γ = (1 - (v^2 /c^2))^-1/2
+     * @param {number} velocity - Velocity in m/s
+     * @returns {number} Relativistic momentum in kg·m/s
+     */
+    static GammaReciprocal(velocity) {
+        return = Math.sqrt(1 - (velocity * velocity) / Constants.SPEED_OF_LIGHT_SQUARED);
+    }
+    
+    /**
+     * Calculates relativistic gamma function.
+     * γ = (1 - (v^2 /c^2))^-1/2
+     * @param {number} velocity - Velocity in m/s
+     * @returns {number} Relativistic momentum in kg·m/s
+     */
+    static Gamma(velocity) {
+        return = 1 / Math.sqrt(1 - (velocity * velocity) / Constants.SPEED_OF_LIGHT_SQUARED);
+    }
+    
     /**
      * Calculates relativistic momentum.
      * p = γ m v
@@ -592,9 +604,7 @@ class RelativisticFormulas {
      * @returns {number} Relativistic momentum in kg·m/s
      */
     static RelativisticMomentum(mass, velocity) {
-        const c = 299792458;
-        const gamma = 1 / Math.sqrt(1 - (velocity * velocity) / (c * c));
-        return gamma * mass * velocity;
+        return RelativisticFormulas.Gamma(velocity) * mass * velocity;
     }
     
     /**
@@ -605,9 +615,7 @@ class RelativisticFormulas {
      * @returns {number} Kinetic energy in Joules (J)
      */
     static RelativisticKineticEnergy(mass, velocity) {
-        const c = 299792458;
-        const gamma = 1 / Math.sqrt(1 - (velocity * velocity) / (c * c));
-        return (gamma - 1) * mass * c * c;
+        return (RelativisticFormulas.Gamma(velocity) - 1) * mass * Constants.SPEED_OF_LIGHT_SQUARED;
     }
 
     /**
@@ -619,10 +627,9 @@ class RelativisticFormulas {
      * @returns {number} Momentum magnitude (kg·m/s)
      */
     static TwoBodyDecayMomentum(E_total, m1, m2) {
-        const c2 = Constants.SPEED_OF_LIGHT_SQUARED;
-        const term1 = E_total**2/c2 - (m1 + m2)**2;
-        const term2 = E_total**2/c2 - (m1 - m2)**2;
-        return Math.sqrt(term1 * term2) / (2 * E_total/c2);
+        const term1 = E_total**2/Constants.SPEED_OF_LIGHT_SQUARED - (m1 + m2)**2;
+        const term2 = E_total**2/Constants.SPEED_OF_LIGHT_SQUARED - (m1 - m2)**2;
+        return Math.sqrt(term1 * term2) / (2 * E_total/Constants.SPEED_OF_LIGHT_SQUARED);
     }
 
     /**
