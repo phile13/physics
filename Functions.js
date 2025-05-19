@@ -107,6 +107,45 @@ class NuclearFormulas {
             alphaMass: 4 * Constants.PROTON_MASS + 2 * Constants.ELECTRON_MASS
         };
     }
+    
+    /**
+     * Binding energy formula (Bethe-Weizsäcker approximation)
+     * B = aV*A - aS*A^(2/3) - aC*Z²/A^(1/3) - aA*(A-2Z)²/A + δ(A,Z)
+     * @param {number} A - Mass number
+     * @param {number} Z - Atomic number
+     * @returns {number} Binding energy in MeV
+     */
+    static BindingEnergy(A, Z) {
+        const aV = 15.5, aS = 16.8, aC = 0.715, aA = 23.0; // Coefficients in MeV
+        const surface = aS * Math.pow(A, 2/3);
+        const coulomb = aC * Z**2 / Math.pow(A, 1/3);
+        const asymmetry = aA * (A - 2*Z)**2 / A;
+        const pairing = (A%2 === 0 && Z%2 === 0) ? 12/Math.sqrt(A) : 0;
+        return aV*A - surface - coulomb - asymmetry + pairing;
+    }
+
+    /**
+     * Neutron moderation equation (from search result [3])
+     * ξ = ln(E_initial/E_final) - Average logarithmic energy loss per collision
+     * @param {number} A - Mass number of moderator nucleus
+     * @returns {number} Average logarithmic energy decrement
+     */
+    static NeutronModeration(A) {
+        return 1 + ((A-1)**2/(2*A)) * Math.log((A-1)/(A+1));
+    }
+
+    /**
+     * Q-value calculation (from search result [3])
+     * Q = (Σm_initial - Σm_final)c²
+     * @param {number[]} initialMasses - Array of initial particle masses (kg)
+     * @param {number[]} finalMasses - Array of final particle masses (kg)
+     * @returns {number} Q-value in joules
+     */
+    static QValue(initialMasses, finalMasses) {
+        const sumInitial = initialMasses.reduce((a,b) => a + b, 0);
+        const sumFinal = finalMasses.reduce((a,b) => a + b, 0);
+        return (sumInitial - sumFinal) * Constants.SPEED_OF_LIGHT_SQUARED;
+    }
 }
 
 class ParticleFormulas {
@@ -177,6 +216,33 @@ class ParticleFormulas {
         const momentumSum = p1 + p2;
         return Math.sqrt(energySum**2 - (momentumSum * Constants.SPEED_OF_LIGHT)**2);
     }
+
+    /**
+     * Mandelstam variables (from search result [2])
+     * s + t + u = m1² + m2² + m3² + m4²
+     * @param {number} s - Mandelstam s
+     * @param {number} t - Mandelstam t
+     * @param {number} u - Mandelstam u
+     * @param {number[]} masses - Array of four particle masses [m1,m2,m3,m4]
+     * @returns {boolean} Conservation check
+     */
+    static MandelstamCheck(s, t, u, masses) {
+        const massSum = masses.reduce((sum,m) => sum + m**2, 0);
+        return Math.abs(s + t + u - massSum) < 1e-6;
+    }
+
+    /**
+     * Breit-Wigner resonance formula (from search result [8])
+     * σ(E) = σ_max * (Γ²/4) / [(E-M)² + Γ²/4]
+     * @param {number} E - Center-of-mass energy
+     * @param {number} M - Resonance mass
+     * @param {number} Γ - Resonance width
+     * @param {number} σ_max - Peak cross-section
+     * @returns {number} Cross-section
+     */
+    static BreitWigner(E, M, Γ, σ_max) {
+        return σ_max * (Γ**2/4) / ((E - M)**2 + Γ**2/4);
+    }
 }
 
 class ElectromagnetismFormulas {
@@ -227,7 +293,29 @@ class ElectromagnetismFormulas {
     static CapacitorEnergy(C, V) {
         return 0.5 * C * V * V;
     }
+
+    /**
+     * Maxwell stress tensor (differential form)
+     * T_ij = ε₀(E_iE_j - 0.5δ_ijE²) + (1/μ₀)(B_iB_j - 0.5δ_ijB²)
+     * @param {number[]} E - Electric field vector [Ex,Ey,Ez]
+     * @param {number[]} B - Magnetic field vector [Bx,By,Bz]
+     * @returns {number[][]} 3x3 stress tensor
+     */
+    static MaxwellStressTensor(E, B) {
+        const ε0 = Constants.VACUUM_PERMITTIVITY;
+        const μ0 = Constants.VACUUM_PERMEABILITY;
+        const E_sq = E.reduce((sum, e) => sum + e**2, 0);
+        const B_sq = B.reduce((sum, b) => sum + b**2, 0);
+        
+        return Array.from({length:3}, (_,i) =>
+            Array.from({length:3}, (_,j) => 
+                ε0*(E[i]*E[j] - 0.5*(i===j)*E_sq) + 
+                (1/μ0)*(B[i]*B[j] - 0.5*(i===j)*B_sq)
+            )
+        );
+    }
 }
+
 
 class ClassicalMechanicsFormulas {
     /**
@@ -440,6 +528,37 @@ class PhotonicsFormulas {
     }
 }
 
+class ThermodynamicsFormulas {
+    /**
+     * Entropy change for ideal gas
+     * ΔS = nRln(V2/V1) + nCvln(T2/T1)
+     * @param {number} n - Moles of gas
+     * @param {number} V1 - Initial volume
+     * @param {number} V2 - Final volume
+     * @param {number} T1 - Initial temperature
+     * @param {number} T2 - Final temperature
+     * @param {number} Cv - Molar heat capacity at const volume
+     * @returns {number} Entropy change (J/K)
+     */
+    static EntropyChange(n, V1, V2, T1, T2, Cv) {
+        return n*Constants.IDEAL_GAS*Math.log(V2/V1) + n*Cv*Math.log(T2/T1);
+    }
+
+    /**
+     * Enthalpy of formation
+     * ΔH°_f = ΣΔH°_products - ΣΔH°_reactants
+     * @param {number[]} productEnthalpies - Array of product ΔH° values
+     * @param {number[]} reactantEnthalpies - Array of reactant ΔH° values
+     * @returns {number} Enthalpy change (kJ/mol)
+     */
+    static FormationEnthalpy(productEnthalpies, reactantEnthalpies) {
+        const sumProducts = productEnthalpies.reduce((a,b) => a + b, 0);
+        const sumReactants = reactantEnthalpies.reduce((a,b) => a + b, 0);
+        return sumProducts - sumReactants;
+    }
+}
+
+
 class RelativisticFormulas {
     /**
      * Calculates time dilation.
@@ -519,4 +638,36 @@ class RelativisticFormulas {
             (mass * Constants.SPEED_OF_LIGHT_SQUARED)**2
         );
     }
+
+    /**
+     * Rapidity calculation (from search result [11])
+     * y = 0.5 * ln[(E+p)/(E-p)]
+     * @param {number} E - Total energy (GeV)
+     * @param {number} p - Momentum (GeV/c)
+     * @returns {number} Rapidity
+     */
+    static Rapidity(E, p) {
+        return 0.5 * Math.log((E + p)/(E - p));
+    }
+
+    /**
+     * Invariant mass calculation (from search result [2])
+     * M² = (ΣE)² - |Σp|²
+     * @param {number[]} energies - Array of particle energies (GeV)
+     * @param {number[][]} momenta - Array of 3-momentum vectors [px,py,pz] (GeV/c)
+     * @returns {number} Invariant mass (GeV/c²)
+     */
+    static InvariantMass(energies, momenta) {
+        const sumE = energies.reduce((a,b) => a + b, 0);
+        const sumP = [0,0,0];
+        momenta.forEach(p => {
+            sumP[0] += p[0];
+            sumP[1] += p[1];
+            sumP[2] += p[2];
+        });
+        const pSq = sumP.reduce((a,b) => a + b**2, 0);
+        return Math.sqrt(sumE**2 - pSq);
+    }
 }
+
+
