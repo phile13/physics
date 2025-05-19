@@ -677,4 +677,435 @@ class RelativisticFormulas {
     }
 }
 
+class ClassicCollisionFormulas {
+    /**
+     * Calculates the final velocities after a 2D partially inelastic collision between two particles.
+     * The coefficient of restitution e (0 ≤ e ≤ 1) determines elasticity.
+     * @param {number} m1 - Mass of particle 1 (kg)
+     * @param {number} m2 - Mass of particle 2 (kg)
+     * @param {number} v1x - Initial x velocity of particle 1 (m/s)
+     * @param {number} v1y - Initial y velocity of particle 1 (m/s)
+     * @param {number} v2x - Initial x velocity of particle 2 (m/s)
+     * @param {number} v2y - Initial y velocity of particle 2 (m/s)
+     * @param {number} x1 - x position of particle 1 (m)
+     * @param {number} y1 - y position of particle 1 (m)
+     * @param {number} x2 - x position of particle 2 (m)
+     * @param {number} y2 - y position of particle 2 (m)
+     * @param {number} e  - Coefficient of restitution (0 for perfectly inelastic(stick together), 1 for perfectly elastic(bounce off each other))
+     * @returns {object} {v1fx, v1fy, v2fx, v2fy} - Final velocities
+     */
+    static Collision2d(m1, m2, v1x, v1y, v2x, v2y, x1, y1, x2, y2, e) {
+        // Normal vector between centers
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const distSq = dx*dx + dy*dy;
+        if (distSq === 0) {
+            // Overlapping particles, return unchanged
+            return {v1fx: v1x, v1fy: v1y, v2fx: v2x, v2fy: v2y};
+        }
+        const dist = Math.sqrt(distSq);
+        const nx = dx / dist;
+        const ny = dy / dist;
+
+        // Relative velocity
+        const dvx = v1x - v2x;
+        const dvy = v1y - v2y;
+
+        // Velocity along the normal
+        const relVel = dvx * nx + dvy * ny;
+
+        // If particles are moving apart, don't collide
+        if (relVel > 0) return {v1fx: v1x, v1fy: v1y, v2fx: v2x, v2fy: v2y};
+
+        // Coefficient of restitution formula (see e.g. https://en.wikipedia.org/wiki/Elastic_collision)
+        // v1n' = ( (m1 - e*m2)*v1n + (1+e)*m2*v2n ) / (m1 + m2)
+        // v2n' = ( (m2 - e*m1)*v2n + (1+e)*m1*v1n ) / (m1 + m2)
+        // We'll decompose velocities into normal and tangential components
+
+        // Normal components
+        const v1n = v1x * nx + v1y * ny;
+        const v2n = v2x * nx + v2y * ny;
+        // Tangential components (unchanged)
+        const v1t = -v1x * ny + v1y * nx;
+        const v2t = -v2x * ny + v2y * nx;
+
+        // New normal velocities after collision
+        const v1n_prime = ((m1 - e * m2) * v1n + (1 + e) * m2 * v2n) / (m1 + m2);
+        const v2n_prime = ((m2 - e * m1) * v2n + (1 + e) * m1 * v1n) / (m1 + m2);
+
+        // Convert back to x/y
+        const v1fx = v1n_prime * nx - v1t * ny;
+        const v1fy = v1n_prime * ny + v1t * nx;
+        const v2fx = v2n_prime * nx - v2t * ny;
+        const v2fy = v2n_prime * ny + v2t * nx;
+
+        return {v1fx, v1fy, v2fx, v2fy};
+    }
+
+    /**
+     * Calculates impulse delivered during a collision.
+     * J = m * (v_after - v_before)
+     * @param {number} mass - Mass in kg
+     * @param {number} v_before - Velocity before collision (m/s)
+     * @param {number} v_after - Velocity after collision (m/s)
+     * @returns {number} Impulse in kg·m/s
+     */
+    static Impulse(mass, v_before, v_after) {
+        return mass * (v_after - v_before);
+    }
+
+    /**
+     * Calculates the kinetic energy lost in a collision.
+     * ΔKE = KE_initial - KE_final
+     * @param {number} m1 - Mass of particle 1 (kg)
+     * @param {number} v1i - Initial velocity of particle 1 (m/s)
+     * @param {number} m2 - Mass of particle 2 (kg)
+     * @param {number} v2i - Initial velocity of particle 2 (m/s)
+     * @param {number} v1f - Final velocity of particle 1 (m/s)
+     * @param {number} v2f - Final velocity of particle 2 (m/s)
+     * @returns {number} Kinetic energy lost (J)
+     */
+    static KineticEnergyLoss(m1, v1i, m2, v2i, v1f, v2f) {
+        const KEi = 0.5 * m1 * v1i * v1i + 0.5 * m2 * v2i * v2i;
+        const KEf = 0.5 * m1 * v1f * v1f + 0.5 * m2 * v2f * v2f;
+        return KEi - KEf;
+    }
+
+    /**
+     * Calculates the coefficient of restitution from measured velocities.
+     * e = (v2f - v1f) / (v1i - v2i)
+     * @param {number} v1i - Initial velocity of particle 1 (m/s)
+     * @param {number} v2i - Initial velocity of particle 2 (m/s)
+     * @param {number} v1f - Final velocity of particle 1 (m/s)
+     * @param {number} v2f - Final velocity of particle 2 (m/s)
+     * @returns {number} Coefficient of restitution (dimensionless)
+     */
+    static CoefficientOfRestitution(v1i, v2i, v1f, v2f) {
+        return (v2f - v1f) / (v1i - v2i);
+    }
+
+    /**
+     * Checks 2D momentum conservation before and after collision.
+     * @param {number} m1 - Mass of particle 1 (kg)
+     * @param {number} v1ix - Initial x velocity of particle 1 (m/s)
+     * @param {number} v1iy - Initial y velocity of particle 1 (m/s)
+     * @param {number} m2 - Mass of particle 2 (kg)
+     * @param {number} v2ix - Initial x velocity of particle 2 (m/s)
+     * @param {number} v2iy - Initial y velocity of particle 2 (m/s)
+     * @param {number} m1f - Mass of particle 1 after (kg)
+     * @param {number} v1fx - Final x velocity of particle 1 (m/s)
+     * @param {number} v1fy - Final y velocity of particle 1 (m/s)
+     * @param {number} m2f - Mass of particle 2 after (kg)
+     * @param {number} v2fx - Final x velocity of particle 2 (m/s)
+     * @param {number} v2fy - Final y velocity of particle 2 (m/s)
+     * @returns {object} { px_i, py_i, px_f, py_f }
+     */
+    static MomentumConservation2D(
+        m1, v1ix, v1iy, m2, v2ix, v2iy,
+        m1f, v1fx, v1fy, m2f, v2fx, v2fy
+    ) {
+        const px_i = m1 * v1ix + m2 * v2ix;
+        const py_i = m1 * v1iy + m2 * v2iy;
+        const px_f = m1f * v1fx + m2f * v2fx;
+        const py_f = m1f * v1fy + m2f * v2fy;
+        return { px_i, py_i, px_f, py_f };
+    }
+
+    /**
+     * Calculates the Mandelstam s variable for relativistic collisions.
+     * s = (E1 + E2)^2 - (px1 + px2)^2 - (py1 + py2)^2 - (pz1 + pz2)^2
+     * @param {number} E1 - Energy of particle 1 (J)
+     * @param {number} px1 - x momentum of particle 1 (kg·m/s)
+     * @param {number} py1 - y momentum of particle 1 (kg·m/s)
+     * @param {number} pz1 - z momentum of particle 1 (kg·m/s)
+     * @param {number} E2 - Energy of particle 2 (J)
+     * @param {number} px2 - x momentum of particle 2 (kg·m/s)
+     * @param {number} py2 - y momentum of particle 2 (kg·m/s)
+     * @param {number} pz2 - z momentum of particle 2 (kg·m/s)
+     * @returns {number} Mandelstam s (J^2)
+     */
+    static MandelstamS(E1, px1, py1, pz1, E2, px2, py2, pz2) {
+        const E = E1 + E2;
+        const px = px1 + px2;
+        const py = py1 + py2;
+        const pz = pz1 + pz2;
+        return E*E - (px*px + py*py + pz*pz * Constants.SPEED_OF_LIGHT_SQUARED);
+    }
+
+    /**
+     * Calculates the lab frame scattering angle from CM frame angle.
+     * θ_lab = arctan( sinθ_cm / (γ + cosθ_cm) )
+     * @param {number} theta_cm - Scattering angle in CM frame (radians)
+     * @param {number} gamma - Dimensionless parameter (depends on masses/velocities)
+     * @returns {number} θ_lab in radians
+     */
+    static LabScatteringAngle(theta_cm, gamma) {
+        return Math.atan( Math.sin(theta_cm) / (gamma + Math.cos(theta_cm)) );
+    }
+
+    /**
+     * Calculates the impact parameter for a collision.
+     * b = |r0x * vy - r0y * vx| / sqrt(vx^2 + vy^2)
+     * @param {number} r0x - Initial x position (m)
+     * @param {number} r0y - Initial y position (m)
+     * @param {number} vx - Velocity x (m/s)
+     * @param {number} vy - Velocity y (m/s)
+     * @returns {number} Impact parameter (m)
+     */
+    static ImpactParameter(r0x, r0y, vx, vy) {
+        return Math.abs(r0x * vy - r0y * vx) / Math.sqrt(vx*vx + vy*vy);
+    }
+
+    /**
+     * Calculates mean free path for collisions in a medium.
+     * λ = 1 / (n * σ)
+     * @param {number} numberDensity - Number density (particles/m^3)
+     * @param {number} crossSection - Cross-section (m^2)
+     * @returns {number} Mean free path (m)
+     */
+    static MeanFreePath(numberDensity, crossSection) {
+        return 1 / (numberDensity * crossSection);
+    }
+
+    /**
+     * Calculates the average time between collisions.
+     * τ = λ / v
+     * @param {number} meanFreePath - Mean free path (m)
+     * @param {number} velocity - Particle velocity (m/s)
+     * @returns {number} Time between collisions (s)
+     */
+    static CollisionTime(meanFreePath, velocity) {
+        return meanFreePath / velocity;
+    }
+}
+
+class QuantumScattering2D {
+    /**
+     * Simulate a 2D quantum elastic collision between two particles,
+     * each with {mass, vx, vy}.
+     * @param {object} p1 - {mass, vx, vy}
+     * @param {object} p2 - {mass, vx, vy}
+     * @returns {object} {particle1: {vx, vy}, particle2: {vx, vy}}
+     */
+    static Scatter(p1, p2) {
+        const m1 = p1.mass, m2 = p2.mass;
+        // 1. Compute momenta
+        const mom1 = [m1 * p1.vx, m1 * p1.vy];
+        const mom2 = [m2 * p2.vx, m2 * p2.vy];
+
+        // 2. Total momentum and center-of-mass velocity
+        const Ptot = [mom1[0] + mom2[0], mom1[1] + mom2[1]];
+        const v_cm = [Ptot[0] / (m1 + m2), Ptot[1] / (m1 + m2)];
+
+        // 3. Momenta in CM frame
+        function subtract(a, b) { return [a[0] - b[0], a[1] - b[1]]; }
+        const mom1_cm = subtract(mom1, [m1 * v_cm[0], m1 * v_cm[1]]);
+        const mom2_cm = subtract(mom2, [m2 * v_cm[0], m2 * v_cm[1]]);
+
+        // 4. Magnitude of outgoing momentum (conserved)
+        const p_mag = Math.sqrt(mom1_cm[0] ** 2 + mom1_cm[1] ** 2);
+
+        // 5. Random outgoing direction (isotropic in 2D)
+        const theta = 2 * Math.PI * Math.random();
+        const dir = [Math.cos(theta), Math.sin(theta)];
+
+        // 6. New momenta in CM frame
+        const mom1_cm_new = [p_mag * dir[0], p_mag * dir[1]];
+        const mom2_cm_new = [-p_mag * dir[0], -p_mag * dir[1]];
+
+        // 7. Convert momenta to velocities in CM frame
+        const v1_cm_new = [mom1_cm_new[0] / m1, mom1_cm_new[1] / m1];
+        const v2_cm_new = [mom2_cm_new[0] / m2, mom2_cm_new[1] / m2];
+
+        // 8. Boost velocities back to lab frame
+        const v1_lab = [v1_cm_new[0] + v_cm[0], v1_cm_new[1] + v_cm[1]];
+        const v2_lab = [v2_cm_new[0] + v_cm[0], v2_cm_new[1] + v_cm[1]];
+
+        return {
+            particle1: {vx: v1_lab[0], vy: v1_lab[1]},
+            particle2: {vx: v2_lab[0], vy: v2_lab[1]}
+        };
+    }
+}
+
+class QuantumRelativisticEvent2D {
+    // --- VECTOR HELPERS ---
+    static vecAdd(a, b) { return [a[0] + b[0], a[1] + b[1]]; }
+    static vecSub(a, b) { return [a[0] - b[0], a[1] - b[1]]; }
+    static vecScale(a, s) { return [a[0] * s, a[1] * s]; }
+    static vecDot(a, b) { return a[0] * b[0] + a[1] * b[1]; }
+    static vecNorm(a) { return Math.sqrt(a[0] * a[0] + a[1] * a[1]); }
+    static vecUnit(a) { const n = this.vecNorm(a); return n === 0 ? [1, 0] : [a[0] / n, a[1] / n]; }
+
+    // --- RELATIVISTIC HELPERS ---
+    static momentum(m, v) {
+        const vmag = this.vecNorm(v);
+        return RelativisticFormulas.RelativisticMomentum(m, vmag);
+    }
+    static energy(m, v) {
+        const vmag = this.vecNorm(v);
+        return ParticleFormulas.RelativisticEnergy(m, vmag);
+    }
+
+    // --- LORENTZ BOOSTS ---
+    static lorentzBoost(px, py, E, v_cm) {
+        const v_cm_mag = this.vecNorm(v_cm);
+        if (v_cm_mag === 0) return { px, py, E };
+        const c = Constants.SPEED_OF_LIGHT;
+        const beta = v_cm_mag / c;
+        const gamma = 1 / Math.sqrt(1 - beta * beta);
+        const n = this.vecUnit(v_cm);
+        const p_par = px * n[0] + py * n[1];
+        const p_perp = [-n[1] * px + n[0] * py];
+        const p_par_prime = gamma * (p_par - beta * E / c);
+        const E_prime = gamma * (E - beta * c * p_par);
+        const px_prime = p_par_prime * n[0] - p_perp[0] * n[1];
+        const py_prime = p_par_prime * n[1] + p_perp[0] * n[0];
+        return { px: px_prime, py: py_prime, E: E_prime };
+    }
+    static inverseLorentzBoost(px, py, E, v_cm) {
+        const v_cm_mag = this.vecNorm(v_cm);
+        if (v_cm_mag === 0) return { px, py, E };
+        const c = Constants.SPEED_OF_LIGHT;
+        const beta = v_cm_mag / c;
+        const gamma = 1 / Math.sqrt(1 - beta * beta);
+        const n = this.vecUnit(v_cm);
+        const p_par = px * n[0] + py * n[1];
+        const p_perp = [-n[1] * px + n[0] * py];
+        const p_par_prime = gamma * (p_par + beta * E / c);
+        const E_prime = gamma * (E + beta * c * p_par);
+        const px_prime = p_par_prime * n[0] - p_perp[0] * n[1];
+        const py_prime = p_par_prime * n[1] + p_perp[0] * n[0];
+        return { px: px_prime, py: py_prime, E: E_prime };
+    }
+    static velocityFromMomentum(px, py, mass) {
+        const p = Math.sqrt(px ** 2 + py ** 2);
+        const c = Constants.SPEED_OF_LIGHT;
+        const gamma = Math.sqrt(1 + (p / (mass * c)) ** 2);
+        const v = p / (mass * gamma);
+        const norm = Math.sqrt(px ** 2 + py ** 2);
+        return norm === 0 ? [0, 0] : [v * px / norm, v * py / norm];
+    }
+
+    // --- PHASE SPACE GENERATOR (RAMBO-LIKE) ---
+    static generatePhaseSpace2D(N, ECM, masses) {
+        // 1. Generate random directions and energies for massless particles in CM
+        let q = [];
+        let sum_px = 0, sum_py = 0, sum_E = 0;
+        for (let i = 0; i < N; ++i) {
+            const theta = 2 * Math.PI * Math.random();
+            const xi = -Math.log(Math.random());
+            const px = xi * Math.cos(theta);
+            const py = xi * Math.sin(theta);
+            const E = xi;
+            q.push({ px, py, E });
+            sum_px += px;
+            sum_py += py;
+            sum_E += E;
+        }
+        // 2. Center momenta
+        for (let i = 0; i < N; ++i) {
+            q[i].px -= sum_px / N;
+            q[i].py -= sum_py / N;
+        }
+        // 3. Rescale energies
+        sum_E = 0;
+        for (let i = 0; i < N; ++i) {
+            q[i].E = Math.sqrt(q[i].px ** 2 + q[i].py ** 2);
+            sum_E += q[i].E;
+        }
+        const scale = ECM / sum_E;
+        for (let i = 0; i < N; ++i) {
+            q[i].px *= scale;
+            q[i].py *= scale;
+            q[i].E *= scale;
+        }
+        // 4. Assign masses and correct momenta/energies
+        const c2 = Constants.SPEED_OF_LIGHT_SQUARED;
+        for (let i = 0; i < N; ++i) {
+            const m = masses[i];
+            const p_mag = Math.sqrt(q[i].px ** 2 + q[i].py ** 2);
+            const E = Math.sqrt(p_mag ** 2 * c2 + m ** 2 * c2 * c2);
+            const p_desired = Math.sqrt((E ** 2 - m ** 2 * c2 * c2) / c2);
+            q[i].px = q[i].px * (p_desired / p_mag);
+            q[i].py = q[i].py * (p_desired / p_mag);
+            q[i].E = E;
+        }
+        return q;
+    }
+
+    // --- MAIN EVENT GENERATOR ---
+    static selectAndScatter(particleA, particleB, outcomes) {
+        // 1. Weighted random selection
+        const totalProb = outcomes.reduce((sum, o) => sum + o.prob, 0);
+        let r = Math.random() * totalProb;
+        let selected = outcomes[0];
+        for (const o of outcomes) {
+            if (r < o.prob) { selected = o; break; }
+            r -= o.prob;
+        }
+
+        // 2. Compute total momentum and energy in LAB
+        const mA = particleA.mass, mB = particleB.mass;
+        const vA = [particleA.vx, particleA.vy], vB = [particleB.vx, particleB.vy];
+        const pA_mag = this.momentum(mA, vA);
+        const pB_mag = this.momentum(mB, vB);
+        const pA_dir = this.vecUnit(vA);
+        const pB_dir = this.vecUnit(vB);
+        const pA_vec = this.vecScale(pA_dir, pA_mag);
+        const pB_vec = this.vecScale(pB_dir, pB_mag);
+        const pTot = this.vecAdd(pA_vec, pB_vec);
+        const eA = this.energy(mA, vA);
+        const eB = this.energy(mB, vB);
+        const ETot = eA + eB;
+
+        // 3. Center-of-mass velocity (relativistic)
+        const c2 = Constants.SPEED_OF_LIGHT_SQUARED;
+        const v_cm = [pTot[0] * c2 / ETot, pTot[1] * c2 / ETot];
+
+        // 4. Boost incoming particles to CM frame
+        const a_cm = this.lorentzBoost(pA_vec[0], pA_vec[1], eA, v_cm);
+        const b_cm = this.lorentzBoost(pB_vec[0], pB_vec[1], eB, v_cm);
+        const ECM = a_cm.E + b_cm.E;
+
+        // 5. Generate final state
+        let newParticles = [];
+        const N = selected.particles.length;
+        if (N === 2) {
+            // --- 2-body final state (as before) ---
+            const m1 = selected.particles[0].mass, m2 = selected.particles[1].mass;
+            const s = ECM * ECM / c2 / c2;
+            const term1 = s - Math.pow((m1 + m2), 2);
+            const term2 = s - Math.pow((m1 - m2), 2);
+            const p_star = 0.5 * Math.sqrt(term1 * term2) * Constants.SPEED_OF_LIGHT;
+            const theta = 2 * Math.PI * Math.random();
+            const dir = [Math.cos(theta), Math.sin(theta)];
+            const p1_cm = [p_star * dir[0], p_star * dir[1]];
+            const p2_cm = [-p_star * dir[0], -p_star * dir[1]];
+            const E1_cm = Math.sqrt((p_star * p_star * c2) + (m1 * c2) * (m1 * c2));
+            const E2_cm = Math.sqrt((p_star * p_star * c2) + (m2 * c2) * (m2 * c2));
+            const p1_lab = this.inverseLorentzBoost(p1_cm[0], p1_cm[1], E1_cm, v_cm);
+            const p2_lab = this.inverseLorentzBoost(p2_cm[0], p2_cm[1], E2_cm, v_cm);
+            const v1 = this.velocityFromMomentum(p1_lab.px, p1_lab.py, m1);
+            const v2 = this.velocityFromMomentum(p2_lab.px, p2_lab.py, m2);
+            newParticles = [
+                { mass: m1, vx: v1[0], vy: v1[1] },
+                { mass: m2, vx: v2[0], vy: v2[1] }
+            ];
+        } else {
+            // --- N-body phase space (RAMBO) ---
+            const masses = selected.particles.map(p => p.mass);
+            const q = this.generatePhaseSpace2D(N, ECM, masses);
+            for (let i = 0; i < N; ++i) {
+                const m = masses[i];
+                const lab = this.inverseLorentzBoost(q[i].px, q[i].py, q[i].E, v_cm);
+                const v = this.velocityFromMomentum(lab.px, lab.py, m);
+                newParticles.push({ mass: m, vx: v[0], vy: v[1] });
+            }
+        }
+        return { selectedOutcome: selected, newParticles };
+    }
+}
+
+
 
