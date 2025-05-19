@@ -1,3 +1,114 @@
+class Constants {
+    // Planck constant (Joule seconds)
+    static PLANCK = 6.62607015e-34;
+
+    // Reduced Planck constant (ħ = h / 2π) (Joule seconds)
+    static HBAR = 6.62607015e-34 / (2 * Math.PI);
+
+    // Speed of light in vacuum (meters per second)
+    static SPEED_OF_LIGHT = 299792458;
+
+    // Speed of light squared (m^2/s^2)
+    static SPEED_OF_LIGHT_SQUARED = 299792458 ** 2;
+
+    // Speed of light cubed (m^3/s^3)
+    static SPEED_OF_LIGHT_CUBED = 299792458 ** 3;
+
+    // Gravitational constant (m^3 kg^-1 s^-2)
+    static GRAVITATIONAL = 6.67430e-11;
+
+    // Coulomb's constant (N·m²/C²)
+    static COULOMB = 8.9875517923e9;
+
+    // Vacuum permeability (Tesla meter per Ampere)
+    static VACUUM_PERMEABILITY = 4 * Math.PI * 1e-7;
+
+    // Standard acceleration due to gravity (m/s^2)
+    static GRAVITY = 9.81;
+
+    // Elementary charge (Coulombs)
+    static ELECTRON_CHARGE = 1.602176634e-19;
+
+    // Electron rest mass (kg)
+    static ELECTRON_MASS = 9.10938356e-31;
+
+    // Boltzmann constant (Joule per Kelvin)
+    static BOLTZMANN = 1.380649e-23;
+
+    // Ideal gas constant (Joule per mole per Kelvin)
+    static IDEAL_GAS = 8.314462618;
+
+    // Avogadro's number (particles per mole)
+    static AVOGADRO = 6.02214076e23;
+
+    // Stefan-Boltzmann constant (W m^-2 K^-4)
+    static STEFAN_BOLTZMANN = 5.670374419e-8;
+
+    // Proton rest mass (kg)
+    static PROTON_MASS = 1.67262192369e-27;
+    
+    // Neutron rest mass (kg)
+    static NEUTRON_MASS = 1.67492749804e-27;
+    
+    // Atomic mass unit (kg)
+    static AMU = 1.66053906660e-27;
+}
+
+class NuclearFormulas {
+    /**
+     * Calculates missing mass in a nuclear reaction (from search result [2])
+     * m² = (E_initial - E_final_known)² - |p_initial - p_final_known|²
+     * @param {number} E_initial - Total initial energy (J)
+     * @param {number} E_final_known - Sum of known final energies (J)
+     * @param {number} p_initial - Initial momentum magnitude (kg·m/s)
+     * @param {number} p_final_known - Sum of known final momenta magnitudes (kg·m/s)
+     * @returns {number} Missing mass (kg)
+     */
+    static MissingMass(E_initial, E_final_known, p_initial, p_final_known) {
+        const energyDiff = E_initial - E_final_known;
+        const momentumDiff = p_initial - p_final_known;
+        return Math.sqrt(energyDiff**2 - (momentumDiff * Constants.SPEED_OF_LIGHT)**2) 
+               / Constants.SPEED_OF_LIGHT_SQUARED;
+    }
+
+    /**
+     * Calculates decay constant from half-life (from search result [6])
+     * λ = ln(2) / T½
+     * @param {number} halfLife - Half-life in seconds
+     * @returns {number} Decay constant (s⁻¹)
+     */
+    static DecayConstant(halfLife) {
+        return Math.LN2 / halfLife;
+    }
+
+    /**
+     * Calculates remaining nuclei after time t (from search result [6])
+     * N = N₀e^(-λt)
+     * @param {number} N0 - Initial quantity
+     * @param {number} lambda - Decay constant (s⁻¹)
+     * @param {number} t - Time elapsed (s)
+     * @returns {number} Remaining nuclei
+     */
+    static RemainingNuclei(N0, lambda, t) {
+        return N0 * Math.exp(-lambda * t);
+    }
+
+    /**
+     * Alpha decay equation (from search result [5])
+     * Returns daughter nucleus and alpha particle masses
+     * @param {number} Z - Atomic number of parent
+     * @param {number} A - Mass number of parent
+     * @returns {Object} {daughterZ, daughterA, alphaMass}
+     */
+    static AlphaDecay(Z, A) {
+        return {
+            daughterZ: Z - 2,
+            daughterA: A - 4,
+            alphaMass: 4 * Constants.PROTON_MASS + 2 * Constants.ELECTRON_MASS
+        };
+    }
+}
+
 class ParticleFormulas {
     /**
      * Calculates electric charge from isospin and hypercharge using the Gell-Mann–Nishijima formula.
@@ -17,9 +128,7 @@ class ParticleFormulas {
      * @returns {number} Compton wavelength in meters (m)
      */
     static ComptonWavelength(mass) {
-        const h = 6.62607015e-34;   // Planck constant (J·s)
-        const c = 299792458;        // Speed of light (m/s)
-        return h / (mass * c);
+        return Constants.PLANCK / (mass * Constants.SPEED_OF_LIGHT);
     }
 
     /**
@@ -30,9 +139,7 @@ class ParticleFormulas {
      * @returns {number} Relativistic energy in Joules (J)
      */
     static RelativisticEnergy(mass, velocity) {
-        const c = 299792458;
-        const gamma = 1 / Math.sqrt(1 - (velocity * velocity) / (c * c));
-        return gamma * mass * c * c;
+        return mass * Constants.SPEED_OF_LIGHT_SQUARED / Math.sqrt(1 - (velocity * velocity) / Constants.SPEED_OF_LIGHT_SQUARED);
     }
 
     /**
@@ -42,8 +149,33 @@ class ParticleFormulas {
      * @returns {number} Wavelength in meters (m)
      */
     static DeBroglieWavelength(momentum) {
-        const h = 6.62607015e-34;
-        return h / momentum;
+        return Constants.PLANCK / momentum;
+    }
+    
+    /**
+     * Calculates beta decay energy (from search result [6])
+     * Q = (m_parent - m_daughter)c²
+     * @param {number} massParent - Parent nucleus mass (kg)
+     * @param {number} massDaughter - Daughter nucleus mass (kg)
+     * @returns {number} Maximum kinetic energy of products (J)
+     */
+    static BetaDecayEnergy(massParent, massDaughter) {
+        return (massParent - massDaughter) * Constants.SPEED_OF_LIGHT_SQUARED;
+    }
+
+    /**
+     * Calculates center-of-mass energy (from search result [4])
+     * √s = √(E₁ + E₂)² - |p₁c + p₂c|²
+     * @param {number} E1 - Energy of particle 1 (J)
+     * @param {number} p1 - Momentum of particle 1 (kg·m/s)
+     * @param {number} E2 - Energy of particle 2 (J)
+     * @param {number} p2 - Momentum of particle 2 (kg·m/s)
+     * @returns {number} Center-of-mass energy (J)
+     */
+    static CenterOfMassEnergy(E1, p1, E2, p2) {
+        const energySum = E1 + E2;
+        const momentumSum = p1 + p2;
+        return Math.sqrt(energySum**2 - (momentumSum * Constants.SPEED_OF_LIGHT)**2);
     }
 }
 
@@ -357,5 +489,34 @@ class RelativisticFormulas {
         const c = 299792458;
         const gamma = 1 / Math.sqrt(1 - (velocity * velocity) / (c * c));
         return (gamma - 1) * mass * c * c;
+    }
+
+    /**
+     * Calculates two-body decay momentum (from search result [5])
+     * p = √[(E² - (m₁ + m₂)²)(E² - (m₁ - m₂)²)] / (2E)
+     * @param {number} E_total - Total energy of parent particle (J)
+     * @param {number} m1 - Mass of first decay product (kg)
+     * @param {number} m2 - Mass of second decay product (kg)
+     * @returns {number} Momentum magnitude (kg·m/s)
+     */
+    static TwoBodyDecayMomentum(E_total, m1, m2) {
+        const c2 = Constants.SPEED_OF_LIGHT_SQUARED;
+        const term1 = E_total**2/c2 - (m1 + m2)**2;
+        const term2 = E_total**2/c2 - (m1 - m2)**2;
+        return Math.sqrt(term1 * term2) / (2 * E_total/c2);
+    }
+
+    /**
+     * Calculates total energy from momentum (from search result [3])
+     * E² = p²c² + m²c⁴
+     * @param {number} momentum - Particle momentum (kg·m/s)
+     * @param {number} mass - Rest mass (kg)
+     * @returns {number} Total energy (J)
+     */
+    static EnergyFromMomentum(momentum, mass) {
+        return Math.sqrt(
+            (momentum * Constants.SPEED_OF_LIGHT)**2 + 
+            (mass * Constants.SPEED_OF_LIGHT_SQUARED)**2
+        );
     }
 }
