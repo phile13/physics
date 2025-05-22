@@ -25,10 +25,10 @@ class Simulation {
 
         const adapter = await navigator.gpu.requestAdapter();
         const device = await adapter.requestDevice();
-        
-        // Create render and compute uniform buffers
+
+        // Create uniform buffers
         const render_uniform_buffer = device.createBuffer({
-            size: 32, // 8 * 4 bytes for ulx, uly, inc, pxw, pxh + padding
+            size: 32, // 8 * 4 bytes (ulx, uly, inc, pxw, pxh, padding)
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
         const sim_uniform_buffer = device.createBuffer({
@@ -58,7 +58,11 @@ class Simulation {
             Simulation.SIM_STATS.ELAPSED_SIM_TIME += scaled_dt;
 
             // Update simulation uniform (dt)
-            Simulation.SIM.device.queue.writeBuffer(Simulation.SIM.sim_uniform_buffer,0,new Float32Array([scaled_dt]));
+            Simulation.SIM.device.queue.writeBuffer(
+                Simulation.SIM.sim_uniform_buffer,
+                0,
+                new Float32Array([scaled_dt])
+            );
 
             Simulation.SIM.Update(scaled_dt);
             Simulation.AfterFrame();
@@ -82,12 +86,24 @@ class Simulation {
             alphaMode: "opaque",
         });
 
-        this.c = new Compute(device, this.particle_buffer, this.sim_uniform_buffer, this.particle_count);
-        this.r = new Render(device, this.particle_buffer, this.render_uniform_buffer, this.format, this.particle_count);
+        this.c = new Compute(
+            device,
+            this.particle_buffer,
+            this.sim_uniform_buffer,
+            this.particle_count
+        );
+        this.r = new Render(
+            device,
+            this.particle_buffer,
+            this.render_uniform_buffer,
+            this.format,
+            this.particle_count
+        );
     }
 
     ToBuffer(particles) {
         // Flatten particles into Float32Array (including color as RGBA)
+        // Each particle: id, x, y, vx, vy, mass, charge, r, g, b, a
         const particleData = new Float32Array(particles.flatMap(p => [
             p.id, p.x, p.y, p.vx, p.vy, p.mass, p.charge,
             p.color.r, p.color.g, p.color.b, p.color.a
@@ -105,8 +121,8 @@ class Simulation {
 
     Update(delta_time) {
         const commandEncoder = this.device.createCommandEncoder();
-        
-        // Update physics (compute pass)
+
+        // Compute pass
         const computePass = commandEncoder.beginComputePass();
         computePass.setPipeline(this.c.compute_pipeline);
         computePass.setBindGroup(0, this.c.particle_bind_group);
@@ -114,7 +130,7 @@ class Simulation {
         computePass.dispatchWorkgroups(Math.ceil(this.particle_count / 64));
         computePass.end();
 
-        // Render
+        // Render pass
         const textureView = this.context.getCurrentTexture().createView();
         const renderPass = commandEncoder.beginRenderPass({
             colorAttachments: [{
@@ -133,7 +149,7 @@ class Simulation {
         this.device.queue.submit([commandEncoder.finish()]);
     }
 
-    // Call this to update render options (ulx, uly, etc.)
+    // Call this to update render options (ulx, uly, inc, pxw, pxh)
     UpdateRenderOptions({ ulx, uly, inc, pxw, pxh }) {
         const buffer = new ArrayBuffer(32);
         const f32 = new Float32Array(buffer);
@@ -143,6 +159,8 @@ class Simulation {
         f32[2] = inc;
         u32[3] = pxw;
         u32[4] = pxh;
+        u32[5] = 0; // padding
+        u32[6] = 0; // padding
         this.device.queue.writeBuffer(this.render_uniform_buffer, 0, buffer);
     }
 }
