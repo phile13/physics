@@ -24,16 +24,7 @@ class Compute {
     ComputeShader() {
         return `
             struct Particle {
-                id: u32,
-                x: f32,
-                y: f32,
-                vx: f32,
-                vy: f32,
-                mass: f32,
-                charge: f32,
-                symbol: u32,        // Symbol index for atlas rendering
-                color: vec4<f32>,   // RGBA color
-                radius : f32,
+                id: u32,x: f32,y: f32,vx: f32,vy: f32,mass: f32,charge: f32,symbol: u32,color: vec4<f32>,radius: f32,_pad: vec3<f32>,
             };
             
             struct SimOptions {
