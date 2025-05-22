@@ -59,18 +59,10 @@ class Renderer {
     VertexShader() {
         return `
             struct Particle {
-                id: u32,
-                x: f32,
-                y: f32,
-                vx: f32,
-                vy: f32,
-                mass: f32,
-                charge: f32,
-                symbol: u32,        // Symbol index for atlas
-                color: vec4<f32>,
+                id: u32,x: f32,y: f32,vx: f32,vy: f32,mass: f32,charge: f32,symbol: u32,color: vec4<f32>,
             };
             struct RenderOptions {
-                ulx: f32, uly: f32, inc: f32, pxw: u32, pxh: u32, _pad0: u32, _pad1: u32,
+                ulx: f32, uly: f32, inc: f32, pxw: u32, pxh: u32, showSymbol: u32, _pad1: u32,
             };
             
             @group(0) @binding(0) var<storage, read> particles: array<Particle>;
@@ -124,18 +116,22 @@ class Renderer {
             fn main(@location(0) color: vec4<f32>,@location(1) local: vec2<f32>,@location(2) symbol: u32) -> @location(0) vec4<f32> {
             
                 if (length(local * 2.0 - 1.0) > 1.0) { discard; }
-            
-                let cellSize = 1.0 / f32(ATLAS_COLS);
-                let col = symbol % ATLAS_COLS;
-                let row = symbol / ATLAS_COLS;
-                let uv = vec2<f32>(
-                    (f32(col) + local.x) * cellSize,
-                    (f32(row) + local.y) * cellSize
-                );
-                let glyph = textureSample(atlas, atlasSampler, uv);
-            
-                // Multiply glyph alpha by particle color
-                return vec4<f32>(color.rgb, color.a * glyph.a);
+
+                if (renderOpts.showSymbol == 1u) {
+                    let cellSize = 1.0 / f32(ATLAS_COLS);
+                    let col = symbol % ATLAS_COLS;
+                    let row = symbol / ATLAS_COLS;
+                    let uv = vec2<f32>(
+                        (f32(col) + local.x) * cellSize,
+                        (f32(row) + local.y) * cellSize
+                    );
+                    let glyph = textureSample(atlas, atlasSampler, uv);
+                    // Multiply glyph alpha by particle color
+                    return vec4<f32>(color.rgb, color.a * glyph.a);
+                }
+                else{
+                    return color;
+                }
             }`;
     }
 
