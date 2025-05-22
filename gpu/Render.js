@@ -28,7 +28,7 @@ class Render {
             fragment: {
                 module: this.fragment_module,
                 entryPoint: 'main',
-                targets: [{ format }],
+                targets: [{ format :  this.format }],
             },
             primitive: { topology: 'triangle-list' },
         });
