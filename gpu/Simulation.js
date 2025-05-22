@@ -5,6 +5,8 @@ class Simulation {
     static SIM = null;
     static PAUSED = true;
     static USER_INTERACTION_OCCURING = false;
+    static SHOW_SYMBOLS = false;
+    static AUTO_ZOOM = false;
     static SIM_STATS = {
         RUN_COUNT: 0,
         FRAME_COUNT: 0,
