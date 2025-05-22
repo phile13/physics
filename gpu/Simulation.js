@@ -113,7 +113,7 @@ class Simulation {
     }
 
     static Run(after_frame_func = null) {
-        Simulation.AfterFrame = after_frame_func || (() => {});
+        Simulation.AfterFrame = after_frame_func || ((x) => {});
         if (Simulation.SIM) {
             Simulation.SIM_STATS.FIRST_START = Date.now();
             requestAnimationFrame(Simulation._Run);
@@ -138,7 +138,7 @@ class Simulation {
             );
 
             Simulation.SIM.Update(scaled_dt);
-            Simulation.AfterFrame();
+            Simulation.AfterFrame(Simulation.SIM_STATS);
         }
         requestAnimationFrame(Simulation._Run);
     }
