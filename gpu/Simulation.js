@@ -3,61 +3,75 @@ class Simulation {
     static PAUSED = true;
     static USER_INTERACTION_OCCURING = false;
     static SIM_STATS = {
-        RUN_COUNT : 0,
-        FRAME_COUNT : 0,
-        FIRST_START : 0,
-        LAST_RUN_START : 0,
-        LAST_FRAME_START : 0,
-        ELAPSED_RUN_TIME : 0,
-        ELAPSED_FRAME_TIME : 0,
-        ELAPSED_SIM_TIME : 0,
+        RUN_COUNT: 0,
+        FRAME_COUNT: 0,
+        FIRST_START: 0,
+        LAST_RUN_START: 0,
+        LAST_FRAME_START: 0,
+        ELAPSED_RUN_TIME: 0,
+        ELAPSED_FRAME_TIME: 0,
+        ELAPSED_SIM_TIME: 0,
         ELAPSED_REAL_TIME: 0
     };
     static TIME_SCALAR = 1e-15;
-    
-    static async Init(particles){
-        if(Simulation.SIM != null){
+
+    static async Init(particles) {
+        if (Simulation.SIM != null) {
             throw new Error("Simulation Already Init'd");
         }
         if (!navigator.gpu) {
             throw new Error("WebGPU not supported");
         }
-        
+
         const adapter = await navigator.gpu.requestAdapter();
         const device = await adapter.requestDevice();
-        Simulation.SIM = new Simulation(device, particles);
+        
+        // Create render and compute uniform buffers
+        const render_uniform_buffer = device.createBuffer({
+            size: 32, // 8 * 4 bytes for ulx, uly, inc, pxw, pxh + padding
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+        const sim_uniform_buffer = device.createBuffer({
+            size: 4, // dt (f32)
+            usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        });
+
+        Simulation.SIM = new Simulation(device, particles, render_uniform_buffer, sim_uniform_buffer);
     }
 
-    static Run(after_frame_func = null){
-        Simulation.AfterFrame = after_frame_func || ()=>{};
-        if(Simulation.SIM){
+    static Run(after_frame_func = null) {
+        Simulation.AfterFrame = after_frame_func || (() => {});
+        if (Simulation.SIM) {
             Simulation.SIM_STATS.FIRST_START = Date.now();
             requestAnimationFrame(Simulation._Run);
         }
     }
-    
-    static _Run(time_delta){
+
+    static _Run(time_delta) {
         Simulation.SIM_STATS.RUN_COUNT++;
-        Simulation.SIM_STATS.ELAPSED_RUN_TIME+=time_delta;
-        
-        if(!Simulation.PAUSED && !Simulation.USER_INTERACTION_OCCURING){
+        Simulation.SIM_STATS.ELAPSED_RUN_TIME += time_delta;
+
+        if (!Simulation.PAUSED && !Simulation.USER_INTERACTION_OCCURING) {
             Simulation.SIM_STATS.FRAME_COUNT++;
             Simulation.SIM_STATS.ELAPSED_REAL_TIME += time_delta;
-            time_delta *= Simulation.TIME_SCALAR;
-            Simulation.SIM_STATS.ELAPSED_SIM_TIME += time_delta;
-            
-            Simulation.SIM.Update(time_delta);
-            
+            const scaled_dt = time_delta * Simulation.TIME_SCALAR;
+            Simulation.SIM_STATS.ELAPSED_SIM_TIME += scaled_dt;
+
+            // Update simulation uniform (dt)
+            Simulation.SIM.device.queue.writeBuffer(Simulation.SIM.sim_uniform_buffer,0,new Float32Array([scaled_dt]));
+
+            Simulation.SIM.Update(scaled_dt);
             Simulation.AfterFrame();
         }
         requestAnimationFrame(Simulation._Run);
     }
-    
-    
-    constructor(device, particles){
+
+    constructor(device, particles, render_uniform_buffer, sim_uniform_buffer) {
         this.device = device;
         this.particle_count = particles.length;
         this.particle_buffer = this.ToBuffer(particles);
+        this.render_uniform_buffer = render_uniform_buffer;
+        this.sim_uniform_buffer = sim_uniform_buffer;
 
         this.canvas = document.getElementById('canvas');
         this.context = this.canvas.getContext('webgpu');
@@ -68,11 +82,17 @@ class Simulation {
             alphaMode: "opaque",
         });
 
-        this.c = new Compute(device, this.particle_buffer, this.particle_count);
-        this.r = new Render(device, this.particle_buffer, this.format, this.particle_count);
+        this.c = new Compute(device, this.particle_buffer, this.sim_uniform_buffer, this.particle_count);
+        this.r = new Render(device, this.particle_buffer, this.render_uniform_buffer, this.format, this.particle_count);
     }
 
-    ToBuffer(particles){
+    ToBuffer(particles) {
+        // Flatten particles into Float32Array (including color as RGBA)
+        const particleData = new Float32Array(particles.flatMap(p => [
+            p.id, p.x, p.y, p.vx, p.vy, p.mass, p.charge,
+            p.color.r, p.color.g, p.color.b, p.color.a
+        ]));
+
         const particleBuffer = this.device.createBuffer({
             size: particleData.byteLength,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
@@ -83,24 +103,20 @@ class Simulation {
         return particleBuffer;
     }
 
-    Update(delta_time){
-        this.command_encoder = this.device.createCommandEncoder();
-        this.UpdatePhysics();
-        this.Render();
-        this.device.queue.submit([this.command_encoder.finish()]);
-    }
+    Update(delta_time) {
+        const commandEncoder = this.device.createCommandEncoder();
+        
+        // Update physics (compute pass)
+        const computePass = commandEncoder.beginComputePass();
+        computePass.setPipeline(this.c.compute_pipeline);
+        computePass.setBindGroup(0, this.c.particle_bind_group);
+        computePass.setBindGroup(1, this.c.sim_bind_group);
+        computePass.dispatchWorkgroups(Math.ceil(this.particle_count / 64));
+        computePass.end();
 
-    UpdatePhysics(){
-        const pass = commandEncoder.beginComputePass();
-        pass.setPipeline(this.c.compute_pipeline);
-        pass.setBindGroup(0, this.c.compute_bind_group);
-        pass.dispatchWorkgroups(Math.ceil(this.particle_count / 64));
-        pass.end();
-    }
-
-    Render(){
-        const textureView = context.getCurrentTexture().createView();
-        const renderPass = this.command_encoder.beginRenderPass({
+        // Render
+        const textureView = this.context.getCurrentTexture().createView();
+        const renderPass = commandEncoder.beginRenderPass({
             colorAttachments: [{
                 view: textureView,
                 clearValue: { r: 0.07, g: 0.07, b: 0.07, a: 1 },
@@ -111,7 +127,22 @@ class Simulation {
         renderPass.setPipeline(this.r.render_pipeline);
         renderPass.setBindGroup(0, this.r.render_bind_group);
         renderPass.setVertexBuffer(0, this.r.quad_buffer);
-        renderPass.draw(6, this.particle_count, 0, 0); // 6 verts per quad, N instances
+        renderPass.draw(6, this.particle_count, 0, 0);
         renderPass.end();
+
+        this.device.queue.submit([commandEncoder.finish()]);
+    }
+
+    // Call this to update render options (ulx, uly, etc.)
+    UpdateRenderOptions({ ulx, uly, inc, pxw, pxh }) {
+        const buffer = new ArrayBuffer(32);
+        const f32 = new Float32Array(buffer);
+        const u32 = new Uint32Array(buffer);
+        f32[0] = ulx;
+        f32[1] = uly;
+        f32[2] = inc;
+        u32[3] = pxw;
+        u32[4] = pxh;
+        this.device.queue.writeBuffer(this.render_uniform_buffer, 0, buffer);
     }
 }
