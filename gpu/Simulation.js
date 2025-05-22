@@ -10,7 +10,8 @@ class Simulation {
         LAST_FRAME_START : 0,
         ELAPSED_RUN_TIME : 0,
         ELAPSED_FRAME_TIME : 0,
-        ELAPSED_SIM_TIME : 0
+        ELAPSED_SIM_TIME : 0,
+        ELAPSED_REAL_TIME: 0
     };
     static TIME_SCALAR = 1e-15;
     
@@ -55,6 +56,7 @@ class Simulation {
     
     constructor(device, particles){
         this.device = device;
+        this.particle_count = particles.length;
         this.particle_buffer = this.ToBuffer(particles);
 
         this.canvas = document.getElementById('canvas');
@@ -66,8 +68,8 @@ class Simulation {
             alphaMode: "opaque",
         });
 
-        this.c = new Compute(device, this.particle_buffer);
-        this.r = new Render(device, this.particle_buffer);
+        this.c = new Compute(device, this.particle_buffer, this.particle_count);
+        this.r = new Render(device, this.particle_buffer, this.format, this.particle_count);
     }
 
     ToBuffer(particles){
@@ -78,6 +80,7 @@ class Simulation {
         });
         new Float32Array(particleBuffer.getMappedRange()).set(particleData);
         particleBuffer.unmap();
+        return particleBuffer;
     }
 
     Update(delta_time){
