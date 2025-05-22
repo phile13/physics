@@ -1,8 +1,42 @@
 class RenderPipeline {
 
-    constructor(device){
+    constructor(device, particle_buffer){
         this.device = device;
-        this.vertex_module = 
+        this.particle_buffer = particle_buffer;
+        this.vertex_module =  device.createShaderModule({ code: this.VertexShader() });
+        this.fragment_module = device.createShaderModule({ code: this.FragmentShader() });
+
+        this.quad_verts = new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]);
+        this.quad_buffer = device.createBuffer({
+            size: this.quad_verts.byteLength,
+            usage: GPUBufferUsage.VERTEX,
+            mappedAtCreation: true,
+        });
+        new Float32Array(this.quad_buffer.getMappedRange()).set(this.quad_verts);
+        this.quad_buffer.unmap();
+
+        this.render_pipeline = device.createRenderPipeline({
+            layout: 'auto',
+            vertex: {
+                module: this.vertex_module,
+                entryPoint: 'main',
+                buffers: [{
+                    arrayStride: 2 * 4,
+                    attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }],
+                }],
+            },
+            fragment: {
+                module: this.fragment_module,
+                entryPoint: 'main',
+                targets: [{ format }],
+            },
+            primitive: { topology: 'triangle-list' },
+        });
+
+        const this.render_bind_group = device.createBindGroup({
+            layout: this.render_pipeline.getBindGroupLayout(0),
+            entries: [{ binding: 0, resource: { buffer: particle_buffer } }],
+        });
     }
 
     VertexShader(){
@@ -29,6 +63,15 @@ class RenderPipeline {
                 out.pos = vec4<f32>(ndc, 0.0, 1.0);
                 out.local = localPos;
                 return out;
+            }`;
+    }
+
+    FragmentShader(){
+        return `
+            @fragment
+            fn main(@location(0) local: vec2<f32>) -> @location(0) vec4<f32> {
+                if (length(local) > 1.0) { discard; }
+                return vec4<f32>(1.0, 1.0, 1.0, 1.0);
             }`;
     }
 
