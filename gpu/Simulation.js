@@ -213,7 +213,7 @@ class Simulation {
         this.device.queue.submit([commandEncoder.finish()]);
     }
 
-    UpdateRenderOptions({ ulx, uly, inc, pxw, pxh }) {
+    function updateRenderUniformBuffer({ulx, uly, inc, pxw, pxh, showSymbol}) {
         const buffer = new ArrayBuffer(32);
         const f32 = new Float32Array(buffer);
         const u32 = new Uint32Array(buffer);
@@ -222,8 +222,9 @@ class Simulation {
         f32[2] = inc;
         u32[3] = pxw;
         u32[4] = pxh;
-        u32[5] = 0;
-        u32[6] = 0;
-        this.device.queue.writeBuffer(this.render_uniform_buffer, 0, buffer);
+        u32[5] = showSymbol ? 1 : 0; // NEW: showSymbol
+        u32[6] = 0; // padding
+        device.queue.writeBuffer(renderUniformBuffer, 0, buffer);
     }
+
 }
