@@ -94,7 +94,7 @@ class Simulation {
         const pass = commandEncoder.beginComputePass();
         pass.setPipeline(this.c.compute_pipeline);
         pass.setBindGroup(0, this.c.compute_bind_group);
-        pass.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
+        pass.dispatchWorkgroups(Math.ceil(this.particle_count / 64));
         pass.end();
     }
 
@@ -111,7 +111,7 @@ class Simulation {
         renderPass.setPipeline(this.r.render_pipeline);
         renderPass.setBindGroup(0, this.r.render_bind_group);
         renderPass.setVertexBuffer(0, this.r.quad_buffer);
-        renderPass.draw(6, PARTICLE_COUNT, 0, 0); // 6 verts per quad, N instances
+        renderPass.draw(6, this.particle_count, 0, 0); // 6 verts per quad, N instances
         renderPass.end();
     }
 }
