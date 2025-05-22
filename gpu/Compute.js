@@ -20,11 +20,21 @@ class Compute {
             entries: [{ binding: 0, resource: { buffer: this.sim_uniform_buffer } }],
         });
     }
-    ComputeShader(){
+
+    ComputeShader() {
         return `
             struct Particle {
-                id: u32, x: f32, y: f32, vx: f32, vy: f32, mass: f32, charge: f32, color: vec4<f32>,
+                id: u32,
+                x: f32,
+                y: f32,
+                vx: f32,
+                vy: f32,
+                mass: f32,
+                charge: f32,
+                symbol: u32,        // Symbol index for atlas rendering
+                color: vec4<f32>,   // RGBA color
             };
+            
             struct SimOptions {
                 dt : f32
             };
@@ -65,18 +75,18 @@ class Compute {
                 var v_new = velocity_from_momentum(px, py, pi.mass);
                 v_new = clamp_velocity(v_new);
             
-                // Update particle
+                // Update particle (symbol and color are preserved)
                 particles[i].vx = v_new.x;
                 particles[i].vy = v_new.y;
                 particles[i].x = pi.x + v_new.x * sim.dt;
                 particles[i].y = pi.y + v_new.y * sim.dt;
+                // particles[i].symbol and particles[i].color remain unchanged
             }
         `;
     }
 
-    fn_compute_force(){
+    fn_compute_force() {
         return `
-            // Compute the force between two particles (gravity + EM)
             fn compute_force(pi: Particle, pj: Particle) -> vec2<f32> {
                 let dx = pj.x - pi.x;
                 let dy = pj.y - pi.y;
@@ -94,9 +104,8 @@ class Compute {
             }`;
     }
 
-    fn_lorentz_gamma(){
+    fn_lorentz_gamma() {
         return `
-            // Compute Lorentz gamma factor
             fn lorentz_gamma(vx: f32, vy: f32) -> f32 {
                 let v2 = vx * vx + vy * vy;
                 let c2 = C * C;
@@ -104,9 +113,8 @@ class Compute {
             }`;
     }
 
-    fn_velocity_from_momentum(){
+    fn_velocity_from_momentum() {
         return `
-            // Compute velocity from momentum (relativistic)
             fn velocity_from_momentum(px: f32, py: f32, mass: f32) -> vec2<f32> {
                 let c2 = C * C;
                 let p2 = px * px + py * py;
@@ -118,9 +126,8 @@ class Compute {
             }`;
     }
 
-    fn_clamp_velocity(){
+    fn_clamp_velocity() {
         return `
-            // Clamp velocity to c if needed
             fn clamp_velocity(v: vec2<f32>) -> vec2<f32> {
                 let speed = length(v);
                 if (speed > C) {
@@ -129,5 +136,4 @@ class Compute {
                 return v;
             }`;
     }
-    
 }
