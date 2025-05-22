@@ -1,8 +1,11 @@
 class Render {
 
-    constructor(device, particle_buffer){
+    constructor(device, particle_buffer, format, particle_count){
         this.device = device;
         this.particle_buffer = particle_buffer;
+        this.format = format;
+        this.particle_count = particle_count;
+        
         this.vertex_module =  this.device.createShaderModule({ code: this.VertexShader() });
         this.fragment_module = this.device.createShaderModule({ code: this.FragmentShader() });
 
