@@ -3,7 +3,7 @@ import { Renderer } from './Renderer.js';
 
 class Simulation {
     static SIM = null;
-    static PAUSED = true;
+    static SIM_RUNNING = true;
     static USER_INTERACTION_OCCURING = false;
     static SHOW_SYMBOLS = false;
     static AUTO_ZOOM = false;
@@ -126,7 +126,7 @@ class Simulation {
         Simulation.SIM_STATS.RUN_COUNT++;
         Simulation.SIM_STATS.ELAPSED_RUN_TIME += time_delta;
 
-        if (!Simulation.PAUSED && !Simulation.USER_INTERACTION_OCCURING) {
+        if (Simulation.SIM_RUNNING && !Simulation.USER_INTERACTION_OCCURING) {
             Simulation.SIM_STATS.FRAME_COUNT++;
             Simulation.SIM_STATS.ELAPSED_REAL_TIME += time_delta;
             const scaled_dt = time_delta * Simulation.TIME_SCALAR;
