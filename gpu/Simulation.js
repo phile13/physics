@@ -46,6 +46,14 @@ class Simulation {
             size: 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
+        const energy_buffer = device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.COPY_SRC,
+        });
+        const staging_buffer = device.createBuffer({
+            size: 4,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
+        });
 
         // 3. Add symbol index to each particle
         particles.forEach(p => {
