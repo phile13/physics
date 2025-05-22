@@ -1,10 +1,23 @@
 class Compute {
-    constructor(){
-
+    constructor(device, particles){
+        this.compute_module = device.createShaderModule({ code: this.ComputeShader() });
+        this.compute_pipeline = device.createComputePipeline({
+            layout: 'auto',
+            compute: { module: this.compute_module, entryPoint: 'main' },
+        });
+        this.compute_bind_group = device.createBindGroup({
+            layout: this.compute_pipeline.getBindGroupLayout(0),
+            entries: [{ binding: 0, resource: { buffer: particleBuffer } }],
+        });
     }
 
     ComputeShader(){
         return `
+            struct Particle {
+                id: u32, x: f32, y: f32, vx: f32, vy: f32, mass: f32, charge: f32,
+            };
+            @group(0) @binding(0) var<storage, read> particles: array<Particle>;
+            
             @compute @workgroup_size(64)
             fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
                 let i = global_id.x;
