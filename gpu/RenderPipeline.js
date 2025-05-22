@@ -35,7 +35,7 @@ class RenderPipeline {
 
         const this.render_bind_group = device.createBindGroup({
             layout: this.render_pipeline.getBindGroupLayout(0),
-            entries: [{ binding: 0, resource: { buffer: particle_buffer } }],
+            entries: [{ binding: 0, resource: { buffer: this.particle_buffer } }],
         });
     }
 
