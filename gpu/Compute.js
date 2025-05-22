@@ -33,6 +33,7 @@ class Compute {
                 charge: f32,
                 symbol: u32,        // Symbol index for atlas rendering
                 color: vec4<f32>,   // RGBA color
+                radius : f32,
             };
             
             struct SimOptions {
@@ -165,7 +166,7 @@ class Compute {
                 let dx = pj.x - new_pos.x;
                 let dy = pj.y - new_pos.y;
                 let dist2 = dx * dx + dy * dy;
-                let min_dist = 2.0 * RADIUS;
+                let min_dist = pi.radius + pj.radius;
                 if (dist2 < min_dist * min_dist) {
                     let dist = sqrt(dist2);
                     let nx = dx / dist;
