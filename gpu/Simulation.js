@@ -186,7 +186,8 @@ class Simulation {
         // Each particle: id, x, y, vx, vy, mass, charge, symbol, r, g, b, a
         const particleData = new Float32Array(particles.flatMap(p => [
             p.id, p.x, p.y, p.vx, p.vy, p.mass, p.charge, p.symbol,
-            p.color.r, p.color.g, p.color.b, p.color.a
+            p.color.r, p.color.g, p.color.b, p.color.a,
+            p.radius
         ]));
 
         const particleBuffer = this.device.createBuffer({
