@@ -1,20 +1,25 @@
 class Compute {
-    constructor(device, particle_buffer, particle_count){
+    constructor(device, particle_buffer, sim_uniform_buffer, particle_count) {
         this.device = device;
         this.particle_buffer = particle_buffer;
+        this.sim_uniform_buffer = sim_uniform_buffer;
         this.particle_count = particle_count;
-        
+
         this.compute_module = device.createShaderModule({ code: this.ComputeShader() });
         this.compute_pipeline = device.createComputePipeline({
             layout: 'auto',
             compute: { module: this.compute_module, entryPoint: 'main' },
         });
-        this.compute_bind_group = device.createBindGroup({
+
+        this.particle_bind_group = device.createBindGroup({
             layout: this.compute_pipeline.getBindGroupLayout(0),
             entries: [{ binding: 0, resource: { buffer: this.particle_buffer } }],
         });
+        this.sim_bind_group = device.createBindGroup({
+            layout: this.compute_pipeline.getBindGroupLayout(1),
+            entries: [{ binding: 0, resource: { buffer: this.sim_uniform_buffer } }],
+        });
     }
-
     ComputeShader(){
         return `
             struct Particle {
