@@ -3,11 +3,11 @@ class Render {
     constructor(device, particle_buffer){
         this.device = device;
         this.particle_buffer = particle_buffer;
-        this.vertex_module =  device.createShaderModule({ code: this.VertexShader() });
-        this.fragment_module = device.createShaderModule({ code: this.FragmentShader() });
+        this.vertex_module =  this.device.createShaderModule({ code: this.VertexShader() });
+        this.fragment_module = this.device.createShaderModule({ code: this.FragmentShader() });
 
         this.quad_verts = new Float32Array([-1,-1,1,-1,-1,1,-1,1,1,-1,1,1]);
-        this.quad_buffer = device.createBuffer({
+        this.quad_buffer = this.device.createBuffer({
             size: this.quad_verts.byteLength,
             usage: GPUBufferUsage.VERTEX,
             mappedAtCreation: true,
@@ -15,7 +15,7 @@ class Render {
         new Float32Array(this.quad_buffer.getMappedRange()).set(this.quad_verts);
         this.quad_buffer.unmap();
 
-        this.render_pipeline = device.createRenderPipeline({
+        this.render_pipeline = this.device.createRenderPipeline({
             layout: 'auto',
             vertex: {
                 module: this.vertex_module,
@@ -33,7 +33,7 @@ class Render {
             primitive: { topology: 'triangle-list' },
         });
 
-        const this.render_bind_group = device.createBindGroup({
+        this.render_bind_group = this.device.createBindGroup({
             layout: this.render_pipeline.getBindGroupLayout(0),
             entries: [{ binding: 0, resource: { buffer: this.particle_buffer } }],
         });
