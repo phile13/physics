@@ -10,6 +10,11 @@
     </style>
 </head>
 <body>
+<div id="controls" style="position:absolute;top:10px;right:10px;z-index:20;">
+  <button id="toggle-sim">Pause Simulation</button>
+  <button id="toggle-symbols">Hide Symbols</button>
+  <button id="toggle-autozoom">Auto Zoom: Off</button>
+</div>
 <canvas id="canvas" width="1000" height="1000"></canvas>
 <script type="module">
 import { Simulation } from './Simulation.js';
