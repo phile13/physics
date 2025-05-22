@@ -1,5 +1,8 @@
 class Compute {
-    constructor(device, particles){
+    constructor(device, particle_buffer){
+        this.device = device;
+        this.particle_buffer = particle_buffer;
+        
         this.compute_module = device.createShaderModule({ code: this.ComputeShader() });
         this.compute_pipeline = device.createComputePipeline({
             layout: 'auto',
@@ -7,7 +10,7 @@ class Compute {
         });
         this.compute_bind_group = device.createBindGroup({
             layout: this.compute_pipeline.getBindGroupLayout(0),
-            entries: [{ binding: 0, resource: { buffer: particleBuffer } }],
+            entries: [{ binding: 0, resource: { buffer: this.particle_buffer } }],
         });
     }
 
