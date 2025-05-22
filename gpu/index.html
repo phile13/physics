@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebGPU Particle Simulation Modular</title>
+    <style>
+        html, body { margin: 0; padding: 0; }
+        body { position: relative; }
+        canvas { display: block; background: #111; }
+    </style>
+</head>
+<body>
+<canvas id="canvas" width="1000" height="1000"></canvas>
+<script type="module">
+import { Simulation } from './Simulation.js';
+import { View } from './View.js';
+
+function randomColor() {
+    return { r: Math.random(), g: Math.random(), b: Math.random(), a: 1.0 };
+}
+const particles = [];
+for (let i = 0; i < 100; ++i) {
+    particles.push({
+        id: i,
+        x: Math.random() * 800 - 400,
+        y: Math.random() * 800 - 400,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        mass: 1.0 + Math.random(),
+        charge: (Math.random() - 0.5) * 2,
+        symbolName: "e",
+        color: randomColor()
+    });
+}
+
+const canvas = document.getElementById('canvas');
+
+Simulation.Init(canvas, particles).then(() => {
+    const view = new View(canvas, Simulation.SIM);
+    Simulation.Run(({ fps, realTime, simTime }) => {
+        view.updateHud(fps, realTime, simTime);
+    });
+});
+</script>
+</body>
+</html>
