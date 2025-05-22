@@ -50,6 +50,8 @@ class Compute {
             ${this.fn_lorentz_gamma()}
             ${this.fn_velocity_from_momentum()}
             ${this.fn_clamp_velocity()}
+            ${this.fn_particles_overlap()}
+            ${this.fn_collision_response()}
             
             @compute @workgroup_size(64)
             fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
