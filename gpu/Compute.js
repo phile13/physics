@@ -74,6 +74,16 @@ class Compute {
                 // Get new velocity from momentum
                 var v_new = velocity_from_momentum(px, py, pi.mass);
                 v_new = clamp_velocity(v_new);
+
+                var new_x = pi.x + v_new.x * sim.dt;
+                var new_y = pi.y + v_new.y * sim.dt;
+            
+                // Collision handling (in-place)
+                for (var j: u32 = 0u; j < arrayLength(&particles); j = j + 1u) {
+                    if (i == j) { continue; }
+                    let pj = particles[j];
+                    v_new = collision_response(pi, pj, v_new, vec2<f32>(new_x, new_y));
+                }
             
                 // Update particle (symbol and color are preserved)
                 particles[i].vx = v_new.x;
@@ -134,6 +144,44 @@ class Compute {
                     return v * (C / speed);
                 }
                 return v;
+            }`;
+    }
+
+    fn_particles_overlap(){
+        return `
+            fn particles_overlap(x1: f32, y1: f32, x2: f32, y2: f32, min_dist: f32) -> bool {
+                let dx = x2 - x1;
+                let dy = y2 - y1;
+                let dist2 = dx * dx + dy * dy;
+                return dist2 < min_dist * min_dist;
+            }`;
+    }
+
+    fn_collision_response(){
+        return `
+            fn collision_response(pi: Particle, pj: Particle,v_new: vec2<f32>, new_pos: vec2<f32>) -> vec2<f32> {
+                let dx = pj.x - new_pos.x;
+                let dy = pj.y - new_pos.y;
+                let dist2 = dx * dx + dy * dy;
+                let min_dist = 2.0 * RADIUS;
+                if (dist2 < min_dist * min_dist) {
+                    let dist = sqrt(dist2);
+                    let nx = dx / dist;
+                    let ny = dy / dist;
+                    let rvx = v_new.x - pj.vx;
+                    let rvy = v_new.y - pj.vy;
+                    let vn = rvx * nx + rvy * ny;
+                    if (vn < 0.0) {
+                        let m1 = pi.mass;
+                        let m2 = pj.mass;
+                        let impulse = (2.0 * vn) / (m1 + m2);
+                        let corr_vx = v_new.x - impulse * m2 * nx;
+                        let corr_vy = v_new.y - impulse * m2 * ny;
+                        // Optionally, push particle out of overlap (not updating position here)
+                        return vec2<f32>(corr_vx, corr_vy);
+                    }
+                }
+                return v_new;
             }`;
     }
 }
