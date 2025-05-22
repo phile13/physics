@@ -60,9 +60,9 @@ class Simulation {
         this.canvas = document.getElementById('canvas');
         this.context = this.canvas.getContext('webgpu');
         this.format = navigator.gpu.getPreferredCanvasFormat();
-        context.configure({
-            this.device,
-            this.format,
+        this.context.configure({
+            device: this.device,
+            format: this.format,
             alphaMode: "opaque",
         });
 
@@ -71,7 +71,7 @@ class Simulation {
     }
 
     ToBuffer(particles){
-        const particleBuffer = device.createBuffer({
+        const particleBuffer = this.device.createBuffer({
             size: particleData.byteLength,
             usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
             mappedAtCreation: true,
