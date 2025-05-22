@@ -138,8 +138,8 @@ class Simulation {
             );
 
             Simulation.SIM.Update(scaled_dt);
-            Simulation.AfterFrame(Simulation.SIM_STATS);
         }
+        Simulation.AfterFrame(Simulation.SIM_STATS);
         requestAnimationFrame(Simulation._Run);
     }
 
