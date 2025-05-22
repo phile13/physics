@@ -15,7 +15,15 @@ class Simulation {
     };
     static TIME_SCALAR = 1e-15;
 
-    static async Init(particles) {
+    // List of all particle/antiparticle symbols to be rendered in the atlas
+    static SYMBOLS = [
+        "e", "μ", "τ", "ν", "u", "d", "c", "s", "t", "b", "γ", "g", "W", "Z", "H", "p", "n",
+        "Λ", "Σ", "Ξ", "Ω", "π",
+        "e⁺", "e⁻", "μ⁺", "μ⁻", "π⁺", "π⁰", "π⁻", "K⁺", "K⁰", "K⁻", "Σ⁺", "Σ⁰", "Σ⁻", "Ξ⁰", "Ξ⁻", "Ω⁻",
+        "p̄", "n̄", "Λ̄"
+    ];
+
+    static async Init(particles, symbols = null) {
         if (Simulation.SIM != null) {
             throw new Error("Simulation Already Init'd");
         }
@@ -26,17 +34,71 @@ class Simulation {
         const adapter = await navigator.gpu.requestAdapter();
         const device = await adapter.requestDevice();
 
-        // Create uniform buffers
+        // 1. Create the symbol atlas texture
+        const { atlasTexture, symbolMap } = await Simulation.CreateSymbolAtlas(device, symbols || Simulation.SYMBOLS);
+
+        // 2. Create uniform buffers
         const render_uniform_buffer = device.createBuffer({
-            size: 32, // 8 * 4 bytes (ulx, uly, inc, pxw, pxh, padding)
+            size: 32,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
         const sim_uniform_buffer = device.createBuffer({
-            size: 4, // dt (f32)
+            size: 4,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
-        Simulation.SIM = new Simulation(device, particles, render_uniform_buffer, sim_uniform_buffer);
+        // 3. Add symbol index to each particle
+        particles.forEach(p => {
+            // p.symbol should be the index in SYMBOLS array
+            p.symbol = symbolMap[p.symbolName]; // e.g., p.symbolName = "π⁺"
+        });
+
+        Simulation.SIM = new Simulation(
+            device,
+            particles,
+            render_uniform_buffer,
+            sim_uniform_buffer,
+            atlasTexture
+        );
+    }
+
+    static async CreateSymbolAtlas(device, symbols) {
+        // Create a canvas and draw each symbol in a grid
+        const cellSize = 48;
+        const cols = 8;
+        const rows = Math.ceil(symbols.length / cols);
+        const canvas = document.createElement('canvas');
+        canvas.width = cols * cellSize;
+        canvas.height = rows * cellSize;
+        const ctx = canvas.getContext('2d');
+        ctx.font = "bold 36px 'STIX Two', 'DejaVu Sans', 'Arial Unicode MS', sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // Map symbol string to atlas index
+        const symbolMap = {};
+        symbols.forEach((sym, i) => {
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            ctx.clearRect(col * cellSize, row * cellSize, cellSize, cellSize);
+            ctx.fillText(sym, col * cellSize + cellSize / 2, row * cellSize + cellSize / 2);
+            symbolMap[sym] = i;
+        });
+
+        // Upload canvas to GPU as a texture
+        const imageBitmap = await createImageBitmap(canvas);
+        const atlasTexture = device.createTexture({
+            size: [canvas.width, canvas.height, 1],
+            format: "rgba8unorm",
+            usage: GPUTextureUsage.TEXTURE_BINDING | GPUTextureUsage.COPY_DST | GPUTextureUsage.RENDER_ATTACHMENT,
+        });
+        device.queue.copyExternalImageToTexture(
+            { source: imageBitmap },
+            { texture: atlasTexture },
+            [canvas.width, canvas.height]
+        );
+
+        return { atlasTexture, symbolMap };
     }
 
     static Run(after_frame_func = null) {
@@ -70,12 +132,13 @@ class Simulation {
         requestAnimationFrame(Simulation._Run);
     }
 
-    constructor(device, particles, render_uniform_buffer, sim_uniform_buffer) {
+    constructor(device, particles, render_uniform_buffer, sim_uniform_buffer, atlasTexture) {
         this.device = device;
         this.particle_count = particles.length;
         this.particle_buffer = this.ToBuffer(particles);
         this.render_uniform_buffer = render_uniform_buffer;
         this.sim_uniform_buffer = sim_uniform_buffer;
+        this.atlasTexture = atlasTexture;
 
         this.canvas = document.getElementById('canvas');
         this.context = this.canvas.getContext('webgpu');
@@ -97,15 +160,16 @@ class Simulation {
             this.particle_buffer,
             this.render_uniform_buffer,
             this.format,
-            this.particle_count
+            this.particle_count,
+            this.atlasTexture,
+            Simulation.SYMBOLS.length // pass atlas grid info as needed
         );
     }
 
     ToBuffer(particles) {
-        // Flatten particles into Float32Array (including color as RGBA)
-        // Each particle: id, x, y, vx, vy, mass, charge, r, g, b, a
+        // Each particle: id, x, y, vx, vy, mass, charge, symbol, r, g, b, a
         const particleData = new Float32Array(particles.flatMap(p => [
-            p.id, p.x, p.y, p.vx, p.vy, p.mass, p.charge,
+            p.id, p.x, p.y, p.vx, p.vy, p.mass, p.charge, p.symbol,
             p.color.r, p.color.g, p.color.b, p.color.a
         ]));
 
@@ -149,7 +213,6 @@ class Simulation {
         this.device.queue.submit([commandEncoder.finish()]);
     }
 
-    // Call this to update render options (ulx, uly, inc, pxw, pxh)
     UpdateRenderOptions({ ulx, uly, inc, pxw, pxh }) {
         const buffer = new ArrayBuffer(32);
         const f32 = new Float32Array(buffer);
@@ -159,8 +222,8 @@ class Simulation {
         f32[2] = inc;
         u32[3] = pxw;
         u32[4] = pxh;
-        u32[5] = 0; // padding
-        u32[6] = 0; // padding
+        u32[5] = 0;
+        u32[6] = 0;
         this.device.queue.writeBuffer(this.render_uniform_buffer, 0, buffer);
     }
 }
