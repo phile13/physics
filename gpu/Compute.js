@@ -1,7 +1,8 @@
 class Compute {
-    constructor(device, particle_buffer){
+    constructor(device, particle_buffer, particle_count){
         this.device = device;
         this.particle_buffer = particle_buffer;
+        this.particle_count = particle_count;
         
         this.compute_module = device.createShaderModule({ code: this.ComputeShader() });
         this.compute_pipeline = device.createComputePipeline({
