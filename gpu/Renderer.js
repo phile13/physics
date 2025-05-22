@@ -59,7 +59,7 @@ class Renderer {
     VertexShader() {
         return `
             struct Particle {
-                id: u32,x: f32,y: f32,vx: f32,vy: f32,mass: f32,charge: f32,symbol: u32,color: vec4<f32>,
+                id: u32,x: f32,y: f32,vx: f32,vy: f32,mass: f32,charge: f32,symbol: u32,color: vec4<f32>,radius: f32,_pad: vec3<f32>,
             };
             struct RenderOptions {
                 ulx: f32, uly: f32, inc: f32, pxw: u32, pxh: u32, showSymbol: u32, _pad1: u32,
