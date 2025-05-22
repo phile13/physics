@@ -1,19 +1,47 @@
 class Simulation {
+    static SIM = null;
+    static PAUSED = true;
+    static USER_INTERACTION_OCCURING = false;
+    static FRAME = 0;
+    static START_TIME = 0;
+    static FRAME_TIME = 0;
+    static RUN_TIME = 0;
+    static TIME_SCALAR = 1;
+    
     static async Init(particles){
+        if(Simulation.SIM != null){
+            throw new Error("Simulation Already Init'd");
+        }
         if (!navigator.gpu) {
             throw new Error("WebGPU not supported");
         }
+        
         const adapter = await navigator.gpu.requestAdapter();
         const device = await adapter.requestDevice();
-        
-        
+        Simulation.SIM = new Simulation(device, particles);
+    }
+
+    static Run(){
+        if(Simulation.SIM){
+            Simulation.START_TIME = Simulation.FRAME_TIME = Date.now();
+            Simulation._Run();
+        }
     }
     
-    constructor(){
+    static _Run(){
+        if(!Simulation.PAUSED && !Simulation.USER_INTERACTION_OCCURING){
+            let now = Date.now();
+            Simulation.SIM.Update((now-Simulation.FRAME_TIME) * Simulation.TIME_SCALAR);
+            Simulation.FRAME_TIME = now;
+            requestAnimationFrame(Simulation._Run);
+        }
+    }
+    
+    
+    constructor(device, particles){
         this.device = device;
-        this.c = c;
-        this.r = r;
-        
+        this.particle_buffer = this.ToBuffer(particles);
+
         this.canvas = document.getElementById('canvas');
         this.context = this.canvas.getContext('webgpu');
         this.format = navigator.gpu.getPreferredCanvasFormat();
@@ -22,9 +50,22 @@ class Simulation {
             this.format,
             alphaMode: "opaque",
         });
+
+        this.c = new Compute(device, this.particle_buffer);
+        this.r = new Render(device, this.particle_buffer);
     }
 
-    Update(){
+    ToBuffer(particles){
+        const particleBuffer = device.createBuffer({
+            size: particleData.byteLength,
+            usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+            mappedAtCreation: true,
+        });
+        new Float32Array(particleBuffer.getMappedRange()).set(particleData);
+        particleBuffer.unmap();
+    }
+
+    Update(delta_time){
         this.command_encoder = this.device.createCommandEncoder();
         this.UpdatePhysics();
         this.Render();
@@ -42,12 +83,12 @@ class Simulation {
     Render(){
         const textureView = context.getCurrentTexture().createView();
         const renderPass = this.command_encoder.beginRenderPass({
-          colorAttachments: [{
-            view: textureView,
-            clearValue: { r: 0.07, g: 0.07, b: 0.07, a: 1 },
-            loadOp: 'clear',
-            storeOp: 'store',
-          }],
+            colorAttachments: [{
+                view: textureView,
+                clearValue: { r: 0.07, g: 0.07, b: 0.07, a: 1 },
+                loadOp: 'clear',
+                storeOp: 'store',
+            }],
         });
         renderPass.setPipeline(this.r.render_pipeline);
         renderPass.setBindGroup(0, this.r.render_bind_group);
