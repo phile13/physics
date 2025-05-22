@@ -55,7 +55,7 @@ class Renderer {
     VertexShader() {
         return `
             struct Particle {
-                id: u32, x: f32, y: f32, vx: f32, vy: f32, mass: f32, charge: f32,
+                id: u32, x: f32, y: f32, vx: f32, vy: f32, mass: f32, charge: f32, color: vec4<f32>,
             };
             struct RenderOptions {
                 ulx: f32, uly: f32, inc: f32, pxw: u32, pxh: u32, _pad0: u32, _pad1: u32,
@@ -66,7 +66,8 @@ class Renderer {
             
             struct VertexOut {
                 @builtin(position) pos: vec4<f32>,
-                @location(0) local: vec2<f32>,
+                @location(0) color: vec4<f32>,
+                @location(1) local: vec2<f32>,
             };
             
             @vertex
@@ -91,6 +92,7 @@ class Renderer {
             
                 var out: VertexOut;
                 out.pos = vec4<f32>(ndc_x + offset_ndc_x, ndc_y + offset_ndc_y, 0.0, 1.0);
+                out.color = p.color;
                 out.local = localPos;
                 return out;
             }`;
@@ -99,9 +101,9 @@ class Renderer {
     FragmentShader() {
         return `
             @fragment
-            fn main(@location(0) local: vec2<f32>) -> @location(0) vec4<f32> {
+            fn main(@location(0) color: vec4<f32>, @location(1) local: vec2<f32>) -> @location(0) vec4<f32> {
                 if (length(local) > 1.0) { discard; }
-                return vec4<f32>(1.0, 1.0, 1.0, 1.0);
+                return color;
             }`;
     }
 
