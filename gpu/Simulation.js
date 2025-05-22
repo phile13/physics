@@ -60,10 +60,13 @@ class Simulation {
             usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ,
         });
 
+        const nuclear_density = 2.3e17; // kg/m^3
         // 3. Add symbol index to each particle
         particles.forEach(p => {
             // p.symbol should be the index in SYMBOLS array
             p.symbol = symbolMap[p.symbolName]; // e.g., p.symbolName = "π⁺"
+            const volume = p.mass / nuclear_density;
+            p.radius = Math.cbrt((3 * volume) / (4 * Math.PI));
         });
 
         Simulation.SIM = new Simulation(
