@@ -1,3 +1,6 @@
+import { Compute } from './Compute.js';
+import { Renderer } from './Renderer.js';
+
 class Simulation {
     static SIM = null;
     static PAUSED = true;
