@@ -2,11 +2,17 @@ class Simulation {
     static SIM = null;
     static PAUSED = true;
     static USER_INTERACTION_OCCURING = false;
-    static FRAME = 0;
-    static START_TIME = 0;
-    static FRAME_TIME = 0;
-    static RUN_TIME = 0;
-    static TIME_SCALAR = 1;
+    static SIM_STATS = {
+        RUN_COUNT : 0,
+        FRAME_COUNT : 0,
+        FIRST_START : 0,
+        LAST_RUN_START : 0,
+        LAST_FRAME_START : 0,
+        ELAPSED_RUN_TIME : 0,
+        ELAPSED_FRAME_TIME : 0,
+        ELAPSED_SIM_TIME : 0
+    };
+    static TIME_STEP = 1e-15;
     
     static async Init(particles){
         if(Simulation.SIM != null){
@@ -23,18 +29,29 @@ class Simulation {
 
     static Run(){
         if(Simulation.SIM){
-            Simulation.START_TIME = Simulation.FRAME_TIME = Date.now();
+            Simulation.SIM_STATS.FIRST_START = Date.now();
             Simulation._Run();
         }
     }
     
     static _Run(){
+        let now = Date.now();
+        
+        Simulation.SIM_STATS.RUN_COUNT++;
         if(!Simulation.PAUSED && !Simulation.USER_INTERACTION_OCCURING){
-            let now = Date.now();
-            Simulation.SIM.Update((now-Simulation.FRAME_TIME) * Simulation.TIME_SCALAR);
-            Simulation.FRAME_TIME = now;
-            requestAnimationFrame(Simulation._Run);
+            Simulation.SIM_STATS.FRAME_COUNT++;
+
+            let delta_time = (now-Simulation.FRAME_TIME);
+            Simulation.ELAPSED_REAL_TIME += delta_time;
+            Simulation.ELAPSED_SIM_TIME += Simulation.TIME_STEP;
+            
+            Simulation.SIM.Update(Simulation.TIME_STEP);
+            
+            Simulation.SIM_STATS.LAST_FRAME_START = now;
         }
+        Simulation.SIM_STATS.ELAPSED_RUN_TIME = now - Simulation.SIM_STATS.FIRST_START;
+        Simulation.SIM_STATS.LAST_RUN_START = now;
+        requestAnimationFrame(Simulation._Run);
     }
     
     
