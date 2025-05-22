@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>All-GPU WebGPU Particle Physics</title>
+  <style>
+    body { background: #222; color: #fff; }
+    canvas { display: block; margin: 2em auto; background: #111; }
+  </style>
+</head>
+<body>
+  <h2>All-GPU WebGPU Particle Physics</h2>
+  <canvas id="canvas" width="1000" height="1000"></canvas>
+  <div id="status"></div>
+  <script type="module">
+    const PARTICLE_COUNT = 2000000;
+    const PARTICLE_STRIDE = 7; // id, x, y, vx, vy, mass, charge
+    const CANVAS_WIDTH = 1000, CANVAS_HEIGHT = 1000;
+
+    // --- Initialize Particle Data ---
+    const particleData = new Float32Array(PARTICLE_COUNT * PARTICLE_STRIDE);
+    for (let i = 0; i < PARTICLE_COUNT; ++i) {
+      const idx = i * PARTICLE_STRIDE;
+      particleData[idx + 0] = i;
+      particleData[idx + 1] = Math.random() * CANVAS_WIDTH;
+      particleData[idx + 2] = Math.random() * CANVAS_HEIGHT;
+      particleData[idx + 3] = (Math.random() - 0.5) * 2;
+      particleData[idx + 4] = (Math.random() - 0.5) * 2;
+      particleData[idx + 5] = 1 + Math.random();
+      particleData[idx + 6] = (Math.random() - 0.5) * 2;
+    }
+
+    // --- WebGPU Setup ---
+    const status = document.getElementById('status');
+    async function initWebGPU() {
+      if (!navigator.gpu) {
+        status.textContent = "WebGPU not supported in this browser.";
+        throw new Error("WebGPU not supported");
+      }
+      const adapter = await navigator.gpu.requestAdapter();
+      const device = await adapter.requestDevice();
+
+      // Context
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('webgpu');
+      const format = navigator.gpu.getPreferredCanvasFormat();
+      context.configure({
+        device,
+        format,
+        alphaMode: "opaque",
+      });
+
+      // --- Buffers ---
+      // Particle storage buffer
+      const particleBuffer = device.createBuffer({
+        size: particleData.byteLength,
+        usage: GPUBufferUsage.STORAGE | GPUBufferUsage.VERTEX | GPUBufferUsage.COPY_DST,
+        mappedAtCreation: true,
+      });
+      new Float32Array(particleBuffer.getMappedRange()).set(particleData);
+      particleBuffer.unmap();
+
+      // --- Compute Shader (Physics) ---
+      const computeShader = `
+        struct Particle {
+          id: u32,
+          x: f32,
+          y: f32,
+          vx: f32,
+          vy: f32,
+          mass: f32,
+          charge: f32,
+        };
+        @group(0) @binding(0) var<storage, read_write> particles: array<Particle>;
+        
+        @compute @workgroup_size(64)
+        fn main(@builtin(global_invocation_id) global_id: vec3<u32>) {
+          let i = global_id.x;
+          if (i >= arrayLength(&particles)) { return; }
+        
+          // Simple gravity
+          particles[i].vy = particles[i].vy + 0.1;
+        
+          // Update position
+          particles[i].x = particles[i].x + particles[i].vx;
+          particles[i].y = particles[i].y + particles[i].vy;
+        
+          // Boundary collision (canvas size 800x600)
+          if (particles[i].x < 0.0) {
+            particles[i].x = 0.0;
+            particles[i].vx = -particles[i].vx * 0.8;
+          }
+          if (particles[i].x > 1000.0) {
+            particles[i].x = 1000.0;
+            particles[i].vx = -particles[i].vx * 0.8;
+          }
+          if (particles[i].y < 0.0) {
+            particles[i].y = 0.0;
+            particles[i].vy = -particles[i].vy * 0.8;
+          }
+          if (particles[i].y > 1000.0) {
+            particles[i].y = 1000.0;
+            particles[i].vy = -particles[i].vy * 0.8;
+          }
+        }
+        `;
+
+      // --- Render Shaders (Instanced Circles) ---
+      // Vertex shader: fetches particle position from storage buffer
+      const vertexShader = `
+        struct Particle {
+          id: u32,
+          x: f32,
+          y: f32,
+          vx: f32,
+          vy: f32,
+          mass: f32,
+          charge: f32,
+        };
+        @group(0) @binding(0) var<storage, read> particles: array<Particle>;
+        
+        struct VertexOut {
+          @builtin(position) pos: vec4<f32>,
+          @location(0) local: vec2<f32>,
+        };
+        
+        @vertex
+        fn main(
+          @builtin(instance_index) instance: u32,
+          @location(0) localPos: vec2<f32>
+        ) -> VertexOut {
+          let p = particles[instance];
+          // Circle radius
+          let r = 4.0;
+          let world = vec2<f32>(p.x, p.y) + localPos * r;
+          // Convert to NDC
+          let ndc = vec2<f32>(
+            world.x / 500.0 - 1.0,
+            1.0 - world.y / 500.0
+          );
+          var out: VertexOut;
+          out.pos = vec4<f32>(ndc, 0.0, 1.0);
+          out.local = localPos;
+          return out;
+        }
+        `;
+
+      // Fragment shader: draws circle using local coordinates
+      const fragmentShader = `
+          @fragment
+          fn main(@location(0) local: vec2<f32>) -> @location(0) vec4<f32> {
+            if (length(local) > 1.0) {
+              discard;
+            }
+            return vec4<f32>(1.0, 1.0, 1.0, 1.0);
+          }
+          `;
+
+      // --- Pipelines ---
+      // Compute pipeline
+      const computeModule = device.createShaderModule({ code: computeShader });
+      const computePipeline = device.createComputePipeline({
+        layout: 'auto',
+        compute: { module: computeModule, entryPoint: 'main' },
+      });
+      const computeBindGroup = device.createBindGroup({
+        layout: computePipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: particleBuffer } }],
+      });
+
+      // Render pipeline
+      const vertexModule = device.createShaderModule({ code: vertexShader });
+      const fragmentModule = device.createShaderModule({ code: fragmentShader });
+
+      // Quad for circle (two triangles, local coordinates in [-1,1])
+      const quadVerts = new Float32Array([
+        -1, -1,
+         1, -1,
+        -1,  1,
+        -1,  1,
+         1, -1,
+         1,  1,
+      ]);
+      const quadBuffer = device.createBuffer({
+        size: quadVerts.byteLength,
+        usage: GPUBufferUsage.VERTEX,
+        mappedAtCreation: true,
+      });
+      new Float32Array(quadBuffer.getMappedRange()).set(quadVerts);
+      quadBuffer.unmap();
+
+      const renderPipeline = device.createRenderPipeline({
+        layout: 'auto',
+        vertex: {
+          module: vertexModule,
+          entryPoint: 'main',
+          buffers: [{
+            arrayStride: 2 * 4,
+            attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }],
+          }],
+        },
+        fragment: {
+          module: fragmentModule,
+          entryPoint: 'main',
+          targets: [{ format }],
+        },
+        primitive: { topology: 'triangle-list' },
+      });
+      const renderBindGroup = device.createBindGroup({
+        layout: renderPipeline.getBindGroupLayout(0),
+        entries: [{ binding: 0, resource: { buffer: particleBuffer } }],
+      });
+
+      let frame_count = 0;
+      let first_frame = Date.now();
+      // --- Animation Loop ---
+      function frame() {
+        // Physics step (compute shader)
+        const commandEncoder = device.createCommandEncoder();
+        const pass = commandEncoder.beginComputePass();
+        pass.setPipeline(computePipeline);
+        pass.setBindGroup(0, computeBindGroup);
+        pass.dispatchWorkgroups(Math.ceil(PARTICLE_COUNT / 64));
+        pass.end();
+
+        // Render pass (instanced quads as circles)
+        const textureView = context.getCurrentTexture().createView();
+        const renderPass = commandEncoder.beginRenderPass({
+          colorAttachments: [{
+            view: textureView,
+            clearValue: { r: 0.07, g: 0.07, b: 0.07, a: 1 },
+            loadOp: 'clear',
+            storeOp: 'store',
+          }],
+        });
+        renderPass.setPipeline(renderPipeline);
+        renderPass.setBindGroup(0, renderBindGroup);
+        renderPass.setVertexBuffer(0, quadBuffer);
+        renderPass.draw(6, PARTICLE_COUNT, 0, 0); // 6 verts per quad, N instances
+        renderPass.end();
+
+        device.queue.submit([commandEncoder.finish()]);
+        if(frame_count++ % 60 === 0){
+          console.log((Date.now()-first_frame)/frame_count);
+        }
+        requestAnimationFrame(frame);
+      }
+      frame();
+      status.textContent = "All-GPU simulation running!";
+    }
+    initWebGPU().catch(e => {
+      status.textContent = e.message;
+      console.error(e);
+    });
+  </script>
+</body>
+</html>
