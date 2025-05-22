@@ -32,7 +32,7 @@ class Renderer {
                 entryPoint: 'main',
                 buffers: [
                     {
-                        arrayStride: 2 * 4,
+                        arrayStride: 64,
                         attributes: [{ shaderLocation: 0, offset: 0, format: 'float32x2' }],
                     }
                 ],
