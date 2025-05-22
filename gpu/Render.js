@@ -1,4 +1,4 @@
-class RenderPipeline {
+class Render {
 
     constructor(device, particle_buffer){
         this.device = device;
