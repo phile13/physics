@@ -27,14 +27,15 @@ const particles = [];
 for (let i = 0; i < 100; ++i) {
     particles.push({
         id: i,
-        x: Math.random() * 800 - 400,
-        y: Math.random() * 800 - 400,
+        x: Math.random() * 1000 - 500,
+        y: Math.random() * 1000 - 500,
         vx: (Math.random() - 0.5) * 2,
         vy: (Math.random() - 0.5) * 2,
         mass: 1.0 + Math.random(),
         charge: (Math.random() - 0.5) * 2,
         symbolName: "e",
-        color: randomColor()
+        color: randomColor(),
+        radius : 1
     });
 }
 
