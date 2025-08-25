@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Particle Physics Sim</title>
+    <style> canvas { background: #ffffff; display: block; margin: auto; } </style>
+    <script src="./TimeManager.js"></script>
+    <script src="./Particle.js"></script>
+    <script src="./Particles.js"></script>
+    <script src="./ParticleTransformations.js"></script>
+    <script src="./PhysicsEngine.js"></script>
+    <script src="./Simulation.js"></script>
+</head>
+<body style="background-color: grey;">
+<canvas id="simCanvas" width="1000" height="1000"></canvas>
+<script>
+
+    const canvas = document.getElementById("simCanvas");
+    const sim = new Simulation(canvas);
+    sim.Setup();
+    sim.Run();
+</script>
+</body>
+</html>
